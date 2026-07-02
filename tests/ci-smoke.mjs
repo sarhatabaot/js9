@@ -12,6 +12,9 @@ import { chromium } from "playwright";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = 8437; // arbitrary high port unlikely to collide in CI
+// Which harness page to load (default: non-min source). Pass a repo-relative
+// path to test a different bundle, e.g. tests/ci-smoke-min.html.
+const PAGE = process.argv[2] || "tests/ci-smoke.html";
 
 const MIME = {
   ".html": "text/html",
@@ -55,7 +58,8 @@ async function main() {
     page.on("requestfailed", (r) => console.log(`  [req FAILED] ${r.url()} :: ${r.failure()?.errorText}`));
     page.on("response", (r) => { if (/astroem|\.wasm/.test(r.url())) console.log(`  [resp ${r.status()}] ${r.url()}`); });
 
-    await page.goto(`http://localhost:${PORT}/tests/ci-smoke.html`, { waitUntil: "load" });
+    console.log(`  loading /${PAGE}`);
+    await page.goto(`http://localhost:${PORT}/${PAGE}`, { waitUntil: "load" });
 
     // Wait for the harness to set window.__js9smoke (wasm compile + FITS load).
     await page.waitForFunction("window.__js9smoke !== null", { timeout: 60000 });

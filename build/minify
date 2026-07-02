@@ -1,13 +1,16 @@
 #!/bin/bash
+#
+# Minify JS files, producing file.min.js for each file.js argument.
+#
+# This is now a thin wrapper around scripts/minify.mjs (esbuild). The previous
+# implementation used the Google Closure Compiler via Java; esbuild removes the
+# JVM dependency and is dramatically faster. See scripts/minify.mjs for details.
 
 if [ $# -lt 1 ]; then
   echo "usage: $0 ifile1 ifile2 ... ifilen"
   exit
 fi
 
-while [ x"$1" != x ]; do
-  IFILE="$1"
-  OFILE=`echo $IFILE | sed 's/\.js$/\.min\.js/'`
-  java -jar build/closure-compiler/compiler.jar --js $IFILE --js_output_file $OFILE
-  shift
-done
+# resolve repo root from this script's location so it works from any cwd
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec node "$DIR/scripts/minify.mjs" "$@"

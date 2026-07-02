@@ -39,5 +39,11 @@ jobs:
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
 
-      - name: Headless smoke test (load FITS, assert image renders)
+      - name: Build minified bundle (esbuild, no JVM)
+        run: npm run build:min
+
+      - name: Smoke test — source bundle
         run: npm run smoke
+
+      - name: Smoke test — esbuild-minified bundle
+        run: npm run smoke:min
