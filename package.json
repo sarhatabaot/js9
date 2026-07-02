@@ -5,9 +5,8 @@
   "main": "js9.js",
   "scripts": {
     "start": "build/quicktest",
-    "test": "build/quicktest build/i800400.fits.gz",
-    "smoke": "node tests/ci-smoke.mjs",
-    "smoke:min": "node tests/ci-smoke.mjs tests/ci-smoke-min.html",
+    "test": "playwright test",
+    "test:quick": "build/quicktest build/i800400.fits.gz",
     "build:min": "node scripts/minify.mjs js9.js js9plugins.js"
   },
   "engines": {
@@ -46,8 +45,8 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "esbuild": "^0.28.1",
-    "playwright": "^1.61.1"
+    "@playwright/test": "^1.61.1",
+    "esbuild": "^0.28.1"
   },
   "bundleDependencies": [
     "minimist",

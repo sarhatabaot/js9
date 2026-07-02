@@ -42,8 +42,5 @@ jobs:
       - name: Build minified bundle (esbuild, no JVM)
         run: npm run build:min
 
-      - name: Smoke test — source bundle
-        run: npm run smoke
-
-      - name: Smoke test — esbuild-minified bundle
-        run: npm run smoke:min
+      - name: End-to-end tests (source + minified bundles)
+        run: npm test
