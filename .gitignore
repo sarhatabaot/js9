@@ -31,3 +31,12 @@ a.out.dSYM
 /old
 /tmp
 /talks
+
+# Node dependencies — installed via `npm install`, not committed.
+# (package.json still lists bundledDependencies; npm bundles those at publish
+#  time from node_modules, so untracking here does not affect `npm publish`.)
+node_modules/
+
+# Playwright test artifacts
+/test-results/
+/playwright-report/
