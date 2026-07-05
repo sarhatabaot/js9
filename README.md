@@ -1,4 +1,7 @@
-**1 July 2022: my software career has come to an end and with it ends active development of JS9. Please plan accordingly. Eric**
+# JS9 astronomical image display everywhere
+
+> [!INFO]
+> 1 July 2022: my software career has come to an end and with it ends active development of JS9. Please plan accordingly. Eric
 
 **31 December 2024: release v3.9 fixes a security vulnerability (see [issue #100](https://github.com/ericmandel/js9/issues/100)) and puts JS9 into a stable state for archiving. Please consider carefully the wisdom of using a Web-based package that has no maintainer.**
 
@@ -8,26 +11,21 @@
 
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/espadrine.svg?style=social&label=Follow%20%40astrosoftware)](https://twitter.com/astrosoftware)
 
-JS9: astronomical image display everywhere
-==========================================
-
 ![JS9](images/js9Readme.png)
 
-What does it do?
-----------------
+## What does it do?
 
-  - display FITS images, binary tables, data cubes, and multi-extension files
-  - colormaps, scaling, pan, zoom, binning, blending, print, export ...
-  - region support: create, manipulate, import, export, ...
-  - drag and drop images, regions, catalogs
-  - server-side and local analysis using the JS9 public API
-  - control JS9 using scripts from the Linux shell or Python
-  - runs on Macs, Linux, Windows, iPads, iPhones, ...
-  - runs as a Desktop app in all modern browsers
-  - utilizes WebAssembly (FITS processing at near native speed!)
+* display FITS images, binary tables, data cubes, and multi-extension files
+* colormaps, scaling, pan, zoom, binning, blending, print, export ...
+* region support: create, manipulate, import, export, ...
+* drag and drop images, regions, catalogs
+* server-side and local analysis using the JS9 public API
+* control JS9 using scripts from the Linux shell or Python
+* runs on Macs, Linux, Windows, iPads, iPhones, ...
+* runs as a Desktop app in all modern browsers
+* utilizes WebAssembly (FITS processing at near native speed!)
 
-How can I try it out?
----------------------
+## How can I try it out?
 
 Go to the [JS9 web site](https://js9.si.edu) (assuming it is still live at the Center for Astrophysics) and drag a
 [FITS](https://fits.gsfc.nasa.gov/) data file onto the JS9 display:
@@ -42,9 +40,7 @@ as part of the URL:
 The JS9 web site also contains on-line documentation, demos, and
 release downloads.
 
-
-To install or not to install ...
---------------------------------
+## To install or not to install
 
 For many users, there is no need to install JS9: simply use the [JS9 web
 site](https://js9.si.edu) to display your data. You can even upload your
@@ -91,8 +87,7 @@ build the JS9 helper and install JS9 in a web directory:
     # or, in the tcsh shell:
     node js9Helper.js >& ~/logs/js9node.log &
 
-What about scripting?
----------------------
+## What about scripting?
 
 The *js9* script allows you to control a JS9 web page from the Linux
 command line using the JS9 Public API (scripting requires installation of
@@ -113,13 +108,12 @@ Python users can install [pyjs9](https://github.com/ericmandel/pyjs9):
     j.Load('spitzer.fits', '{"scale":"log","colormap":"blue","contrast":6.3,"bias":0.54}')
     j.ReprojectData('chandra.fits')
 
-What's the license?
--------------------
+## What's the license?
 
 JS9 is distributed under the terms of The MIT License.
 
-What's the recent release history?
-----------------------------------
+## What's the recent release history?
+
 [![DOI](https://zenodo.org/badge/24642171.svg)](https://doi.org/10.5281/zenodo.596052)  __v3.9.0__ &nbsp; (12/13/2024)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6675771.svg)](https://doi.org/10.5281/zenodo.6675771)  __v3.8.0__ &nbsp; (06/21/2022)
@@ -142,8 +136,7 @@ What's the recent release history?
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4252893.svg)](https://doi.org/10.5281/zenodo.4252893) __v3.2.0__ &nbsp; (11/06/2020)
 
-Who's responsible?
-------------------
+## Who's responsible?
 
 Eric Mandel, Alexey Vikhlinin
 
