@@ -7,7 +7,7 @@
 
 // A tiny FITS committed to the repo (800x400, int32). The only image fixture
 // available without the external data/ set — see PHASE2-DEPS.md / smoke.py notes.
-export const TINY_FITS = "../../../build/i800400.fits.gz";
+export const TINY_FITS = "/build/i800400.fits.gz";
 
 // Navigate to a harness page and wait until JS9 + the FITS module are ready.
 export async function openHarness(page, variant = "source") {

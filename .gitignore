@@ -41,21 +41,8 @@ node_modules/
 /test-results/
 /playwright-report/
 
-# Generated build artifacts — produced by `npm run build` (scripts/build.mjs),
-# not committed. A clone gets them via the `prepare` hook on `npm install`;
-# `npm publish` ships them (see .npmignore). Sources (js9.js, js9.css, css/,
-# js/, plugins/, astroem*) are NOT here — only build outputs.
-/js9support.js
-/js9support.min.js
-/js9support.css
-/js9support.txt
-/js9plugins.js
-/js9plugins.min.js
-/js9.min.js
-/js9-allinone.js
-/js9-allinone.css
-
-# Generated docs — Eleventy builds these from docs/ (npm run docs). Sources
-# live in docs/; the app deep-links to help/*.html and plugins/help/*.html.
-/help/*.html
-/plugins/help/*.html
+# Generated deployable site — `npm run build` assembles the full static app
+# (bundles, minified core, all-in-one, runtime files, docs, demos, assets) into
+# _site/ from docs/ + the root library sources. Built by the `prepare` hook on
+# `npm install`; served with `npm run serve`; deployed via a GitHub Action.
+/_site/

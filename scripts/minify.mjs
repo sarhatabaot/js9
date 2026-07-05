@@ -23,10 +23,11 @@ async function leadingBanner(file) {
   return m ? m[0] : "";
 }
 
-// Minify one "foo.js" into "foo.min.js". Returns the output path.
-export async function minifyFile(file) {
+// Minify "file" into "outFile" (default: sibling "foo.min.js"). Returns the
+// output path.
+export async function minifyFile(file, outFile) {
   if (!file.endsWith(".js")) throw new Error(`not a .js file: ${file}`);
-  const outfile = file.replace(/\.js$/, ".min.js");
+  const outfile = outFile || file.replace(/\.js$/, ".min.js");
   const banner = await leadingBanner(file);
   await build({
     entryPoints: [file],

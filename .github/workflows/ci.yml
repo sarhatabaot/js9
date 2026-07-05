@@ -29,15 +29,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build web artifacts (concat + esbuild + all-in-one, no make/JVM)
-        # also runs automatically via the package.json "prepare" hook on npm ci;
-        # kept explicit for clarity. Generated artifacts are not committed.
+      - name: Build the site (concat + esbuild + all-in-one + docs -> _site/)
+        # also runs via the package.json "prepare" hook on npm ci; kept explicit.
+        # The built site (_site/) is not committed.
         run: npm run build
 
-      - name: Syntax-check JS (sources + generated bundles)
+      - name: Syntax-check JS (root sources + generated bundles in _site/)
         run: |
-          for f in js9.js js9.min.js js9-allinone.js js9support.js \
-                   js9plugins.js js9Helper.js js9worker.js astroem.js; do
+          for f in js9.js js9Helper.js js9Msg.js js9Regions.js js9worker.js astroem.js \
+                   _site/js9.min.js _site/js9-allinone.js _site/js9support.min.js \
+                   _site/js9plugins.js; do
             node --check "$f" && echo "OK   $f"
           done
 

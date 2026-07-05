@@ -1,24 +1,19 @@
-// Node build for the JS9 web artifacts — a replacement for the concatenation
-// and all-in-one steps the Makefile used to do (targets: js9support, js9min,
-// allinone). No make, no bash, no JVM.
+// Node build for the JS9 web app. Assembles the deployable static site in
+// _site/ (no make, no bash, no JVM). Eleventy (npm run docs) renders the pages
+// and copies docs/assets into _site/; this script produces the JS/CSS bundles
+// and copies the core runtime library files.
 //
-// Produces, in the repo root (matching the current layout):
-//   js9support.min.js  = concat of the vendored (already-minified) libs
-//   js9support.js      = concat of the non-min vendored libs
-//   js9support.css     = concat of the support + plugin CSS
-//   js9plugins.js      = concat of the plugin sources
-//   js9.min.js         = esbuild-minified js9.js
-//   js9plugins.min.js  = esbuild-minified js9plugins.js
-//   js9-allinone.js    = banner + support.min + js9.min + plugins + astroem
-//                        + inline data-URI assets + embedded params HTML
-//   js9-allinone.css   = banner + support.css + js9.css + inline icon
+// Inputs:  docs/assets/{js,css,params} (vendored libs + dialogs), plugins/
+//          (plugin sources), and the root library sources (js9.js, js9.css, ...)
+// Outputs (all in _site/):
+//   js9support.min.js / js9support.js / js9support.css / js9support.txt
+//   js9plugins.js / js9plugins.min.js / js9.min.js
+//   js9-allinone.js / js9-allinone.css
+//   + copied runtime files (js9.css, js9worker.js, astroem*, prefs, favicon)
 //
-// The file lists below mirror JSFILES / CSSFILES / PLCSSFILES / PLUGINFILES in
-// Makefile.in and are now the source of truth for the build.
-//
-// Usage: node scripts/build.mjs   (or: npm run build)
+// Usage: node scripts/build.mjs   (run before/with `npm run docs`; see build)
 
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
 import { Buffer } from "node:buffer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,37 +21,35 @@ import { minifyFile } from "./minify.mjs";
 import { allinoneGifs, sunIconCss } from "./allinone-assets.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const abs = (p) => path.join(ROOT, p);
+const OUTDIR = "_site";
+const abs = (p) => path.join(ROOT, p); // source, repo-relative
+const out = (p) => path.join(ROOT, OUTDIR, p); // build output in _site/
 
-// --- file lists (mirror Makefile.in) --------------------------------------
+// --- file lists ------------------------------------------------------------
+// Vendored libs + support CSS + params dialogs now live under docs/assets/;
+// plugin sources stay at the repo root under plugins/.
+const A = "docs/assets";
 
-// vendored support libs (already-minified builds); js9support.min.js
 const JSFILES = [
-  "js/winmod.js", "js/jquery.min.js", "js/jquery-ui.min.js",
-  "js/jquery.contextMenu.min.js", "js/jquery.flot.min.js",
-  "js/jquery.flot.errorbars.min.js", "js/jquery.flot.navigate.min.js",
-  "js/jquery.flot.resize.min.js", "js/jquery.flot.selection.min.js",
-  "js/flot-zoom.min.js", "js/sprintf.min.js", "js/dhtmlwindow.min.js",
-  "js/dhtmlwindow_blurb.js", "js/fabric.min.js", "js/pako_inflate.min.js",
-  "js/FileSaver.min.js", "js/canvas-toBlob.js", "js/tabcontent.js",
-  "js/arrive.min.js", "js/jquery.doubletap.min.js",
-  "js/jquery.flot.axislabels.js", "js/spin.js", "js/ElementQueries.js",
-  "js/ResizeSensor.js", "js/gaussblur.js", "js/imagefilters.js",
-  "js/jquery.ui.touch-punch.js", "js/js9inline.js", "js/spectrum.min.js",
-  "js/tinycolor.min.js", "js/jquery.mark.es6.min.js", "js/jquery.caret.min.js",
-  "js/regSelect.js",
-];
+  "winmod.js", "jquery.min.js", "jquery-ui.min.js", "jquery.contextMenu.min.js",
+  "jquery.flot.min.js", "jquery.flot.errorbars.min.js", "jquery.flot.navigate.min.js",
+  "jquery.flot.resize.min.js", "jquery.flot.selection.min.js", "flot-zoom.min.js",
+  "sprintf.min.js", "dhtmlwindow.min.js", "dhtmlwindow_blurb.js", "fabric.min.js",
+  "pako_inflate.min.js", "FileSaver.min.js", "canvas-toBlob.js", "tabcontent.js",
+  "arrive.min.js", "jquery.doubletap.min.js", "jquery.flot.axislabels.js",
+  "spin.js", "ElementQueries.js", "ResizeSensor.js", "gaussblur.js",
+  "imagefilters.js", "jquery.ui.touch-punch.js", "js9inline.js", "spectrum.min.js",
+  "tinycolor.min.js", "jquery.mark.es6.min.js", "jquery.caret.min.js", "regSelect.js",
+].map((b) => `${A}/js/${b}`);
 
 const CSSFILES = [
-  "css/jquery.contextMenu.css", "css/dhtmlwindow.css",
-  "css/tabcontent.css", "css/spectrum.css",
-];
+  "jquery.contextMenu.css", "dhtmlwindow.css", "tabcontent.css", "spectrum.css",
+].map((b) => `${A}/css/${b}`);
 
 const PLCSSFILES = [
   "blend", "blink", "cmaps", "colorcontrols", "colorbar", "cube", "divs",
   "filters", "imarith", "keyboard", "layers", "mef", "mousetouch",
-  "scalecontrols", "separate", "statusbar", "syncui", "toolbar",
-  "zoomcontrols",
+  "scalecontrols", "separate", "statusbar", "syncui", "toolbar", "zoomcontrols",
 ].map((n) => `plugins/core/${n}.css`);
 
 const PLUGINFILES = [
@@ -78,24 +71,26 @@ const PLUGINFILES = [
   "plugins/imexam/contour.js",
 ];
 
-// --- helpers ---------------------------------------------------------------
+// Core runtime library files copied verbatim into _site/ (loaded by the app at
+// runtime relative to INSTALLDIR, which resolves to _site/'s root).
+const RUNTIME = [
+  "js9.js", "js9.css", "js9prefs.js", "js9Prefs.json", "js9worker.js",
+  "astroem.js", "astroemw.js", "astroemw.wasm", "favicon.ico",
+];
 
-// Raw byte concatenation of files (matches `cat a b c > out`).
-async function concat(files) {
+// --- helpers ---------------------------------------------------------------
+async function concatFiles(files) {
   const bufs = await Promise.all(files.map((f) => readFile(abs(f))));
   return Buffer.concat(bufs);
 }
 
 async function writeOut(name, data) {
-  await writeFile(abs(name), data);
-  console.log(`  ${name}`);
+  await writeFile(out(name), data);
+  console.log(`  _site/${name}`);
 }
 
-// Port of the mkallinone `sed` pipeline that inlines a params/*.html file as a
-// single JS string. `simple` files delete from line 1 through <body>; the rest
-// also strip the leading block (to first blank line) and the </head>..<body>
-// gap. All then drop the trailing </body>.. and collapse to one line, escaping
-// double quotes.
+// Port of the old mkallinone sed pipeline: inline a params/*.html dialog as one
+// escaped JS string (see git history for the original bash).
 async function embedHtml(file, simple) {
   let lines = (await readFile(abs(file), "utf8")).split("\n");
   if (simple) {
@@ -119,19 +114,19 @@ async function embedHtml(file, simple) {
 }
 
 // --- build -----------------------------------------------------------------
-
 async function main() {
   const pkg = JSON.parse(await readFile(abs("package.json"), "utf8"));
   const version = pkg.version;
-  console.log(`building JS9 web artifacts (v${version}) ...`);
+  console.log(`building JS9 web app -> ${OUTDIR}/ (v${version}) ...`);
+  await mkdir(out("."), { recursive: true });
 
   // support + plugin concatenations
-  await writeOut("js9support.min.js", await concat(JSFILES));
-  await writeOut("js9support.js", await concat(JSFILES.map((f) => f.replace(/\.min/g, ""))));
-  await writeOut("js9support.css", await concat([...CSSFILES, ...PLCSSFILES]));
-  await writeOut("js9plugins.js", await concat(PLUGINFILES));
+  await writeOut("js9support.min.js", await concatFiles(JSFILES));
+  await writeOut("js9support.js", await concatFiles(JSFILES.map((f) => f.replace(/\.min/g, ""))));
+  await writeOut("js9support.css", await concatFiles([...CSSFILES, ...PLCSSFILES]));
+  await writeOut("js9plugins.js", await concatFiles(PLUGINFILES));
 
-  // manifest of which files went into each bundle (shipped alongside them)
+  // manifest of which files went into each bundle
   const txt =
     "css files in js9support.css: \n" + CSSFILES.join(" ") + "\n" +
     PLCSSFILES.join(" ") + "\n" +
@@ -140,34 +135,42 @@ async function main() {
   await writeOut("js9support.txt", Buffer.from(txt));
 
   // minified core + plugins (esbuild)
-  await minifyFile(abs("js9.js"));
-  console.log("  js9.min.js");
-  await minifyFile(abs("js9plugins.js"));
-  console.log("  js9plugins.min.js");
+  await minifyFile(abs("js9.js"), out("js9.min.js"));
+  console.log("  _site/js9.min.js");
+  await minifyFile(out("js9plugins.js"), out("js9plugins.min.js"));
+  console.log("  _site/js9plugins.min.js");
 
-  // all-in-one JS
+  // all-in-one JS (reads the just-built bundles from _site/ + astroem source)
   const banner = `/* JS9 allinone: v${version} */\n`;
-  const bundle = await concat(["js9support.min.js", "js9.min.js", "js9plugins.js", "astroem.js"]);
+  const bundle = Buffer.concat([
+    await readFile(out("js9support.min.js")),
+    await readFile(out("js9.min.js")),
+    await readFile(out("js9plugins.js")),
+    await readFile(abs("astroem.js")),
+  ]);
   let js = Buffer.concat([Buffer.from(banner), bundle]).toString("binary");
   js += "JS9.allinone = {};\n";
   for (const key of ["min", "close", "restore", "resize"]) {
     js += `JS9.allinone.${key} = "${allinoneGifs[key]}";\n`;
   }
-  js += `JS9.allinone.regionsConfigHTML = "${await embedHtml("params/regionsconfig.html")}";\n`;
-  js += `JS9.allinone.regionsSaveHTML = "${await embedHtml("params/regionssave.html")}";\n`;
-  js += `JS9.allinone.plotConfigHTML = "${await embedHtml("params/plotconfig.html")}";\n`;
-  js += `JS9.allinone.loadHTML = "${await embedHtml("params/load.html")}";\n`;
-  js += `JS9.allinone.loadCorsHTML = "${await embedHtml("params/loadcors.html", true)}";\n`;
-  js += `JS9.allinone.lightCloseHTML = "${await embedHtml("params/lightclose.html", true)}";\n`;
+  js += `JS9.allinone.regionsConfigHTML = "${await embedHtml(`${A}/params/regionsconfig.html`)}";\n`;
+  js += `JS9.allinone.regionsSaveHTML = "${await embedHtml(`${A}/params/regionssave.html`)}";\n`;
+  js += `JS9.allinone.plotConfigHTML = "${await embedHtml(`${A}/params/plotconfig.html`)}";\n`;
+  js += `JS9.allinone.loadHTML = "${await embedHtml(`${A}/params/load.html`)}";\n`;
+  js += `JS9.allinone.loadCorsHTML = "${await embedHtml(`${A}/params/loadcors.html`, true)}";\n`;
+  js += `JS9.allinone.lightCloseHTML = "${await embedHtml(`${A}/params/lightclose.html`, true)}";\n`;
   await writeOut("js9-allinone.js", Buffer.from(js, "binary"));
 
   // all-in-one CSS
-  const css = Buffer.concat([
+  await writeOut("js9-allinone.css", Buffer.concat([
     Buffer.from(banner),
-    await concat(["js9support.css", "js9.css"]),
+    await concatFiles([...CSSFILES, ...PLCSSFILES, "js9.css"]),
     Buffer.from(sunIconCss + "\n"),
-  ]);
-  await writeOut("js9-allinone.css", css);
+  ]));
+
+  // copy core runtime files into _site/
+  for (const f of RUNTIME) await copyFile(abs(f), out(f));
+  console.log(`  _site/ <- ${RUNTIME.length} runtime files`);
 
   console.log("done.");
 }
