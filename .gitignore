@@ -54,3 +54,8 @@ node_modules/
 /js9.min.js
 /js9-allinone.js
 /js9-allinone.css
+
+# Generated docs — Eleventy builds these from docs/ (npm run docs). Sources
+# live in docs/; the app deep-links to help/*.html and plugins/help/*.html.
+/help/*.html
+/plugins/help/*.html

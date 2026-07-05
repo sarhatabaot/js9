@@ -41,3 +41,8 @@ a.out.dSYM
 node_modules/
 /test-results/
 /playwright-report/
+
+# Docs build inputs — the generated help/ + plugins/help/ pages DO ship, but
+# the Eleventy sources and config don't need to.
+/docs
+/eleventy.config.mjs
