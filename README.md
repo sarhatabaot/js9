@@ -1,6 +1,6 @@
 # JS9 astronomical image display everywhere
 
-> [!INFO]
+> [!NOTE]
 > 1 July 2022: my software career has come to an end and with it ends active development of JS9. Please plan accordingly. Eric
 
 **31 December 2024: release v3.9 fixes a security vulnerability (see [issue #100](https://github.com/ericmandel/js9/issues/100)) and puts JS9 into a stable state for archiving. Please consider carefully the wisdom of using a Web-based package that has no maintainer.**
