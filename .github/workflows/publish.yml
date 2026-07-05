@@ -4,24 +4,17 @@ name: Publish to npm
 # to run on a published GitHub Release (or manual dispatch) so it stays inert
 # until you make a release.
 #
-# PREREQUISITES (do these first):
-#   1. npm account + org, with 2FA enabled.
-#   2. Choose a package name. "js9" is already taken on npm by the upstream
-#      project, so this fork must publish under a scoped name, e.g.
-#      "@your-scope/js9". Update package.json "name" accordingly.
-#   3. Decide WHAT ships. JS9's value on npm is as a CDN source (jsDelivr/unpkg
-#      serve the browser bundles via <script>), not as an `import` library. The
-#      built bundles live in _site/ after `npm run build`, and _site/ is
-#      gitignored, so add a package.json "files" whitelist that includes the
-#      artifacts you want to serve (built by the prepare hook), and verify with
-#      `npm pack --dry-run`. (Current .npmignore targets the OLD flat layout and
-#      needs replacing for the src/ + _site/ structure.)
-#   4. Authentication — pick one:
+# Package name/version/contents are set (js9-modern; package.json "files"
+# whitelists the built _site/ bundles — verified with `npm pack --dry-run`).
+# REMAINING PREREQUISITES before this can run:
+#   1. An npm account with 2FA enabled that owns (or can create) "js9-modern".
+#   2. Authentication — pick one:
 #      a. Trusted publishing (recommended): configure this repo as a trusted
-#         publisher for the package on npmjs.com; then no token is needed and
+#         publisher for js9-modern on npmjs.com; then no token is needed and
 #         --provenance works via OIDC (id-token: write below).
 #      b. Token: add an npm automation token as the NPM_TOKEN repo secret and
 #         set NODE_AUTH_TOKEN in the publish step.
+#   3. Cut a GitHub Release (or dispatch manually) to trigger a publish.
 
 on:
   release:
@@ -34,6 +27,10 @@ permissions:
 
 jobs:
   publish:
+    # DISABLED — preparation only. This job will not run (even on a release or
+    # manual dispatch) until the npm account + auth are set up. To enable,
+    # delete this `if: false` line.
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,8 +45,13 @@ jobs:
       # Fail-safe review: prints the exact file list that would be published.
       - run: npm pack --dry-run
 
-      - name: Publish
-        run: npm publish --provenance --access public
-        # For token auth (prerequisite 4b) instead of trusted publishing:
+      - name: Publish (experimental dist-tag)
+        # --tag experimental: publishes under the "experimental" tag, NOT
+        # "latest", so `npm install js9-modern` won't pull it — users opt in with
+        # `npm install js9-modern@experimental`. Combined with the prerelease
+        # version (3.10.0-experimental.N), it's never installed by default.
+        # To graduate: set a stable version (3.10.0) and drop --tag (-> latest).
+        run: npm publish --tag experimental --provenance --access public
+        # For token auth instead of trusted publishing:
         # env:
         #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

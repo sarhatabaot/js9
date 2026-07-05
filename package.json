@@ -1,8 +1,42 @@
 {
-  "name": "js9",
-  "version": "3.9.0",
-  "description": "astronomical image display everywhere",
-  "main": "src/js9.js",
+  "name": "js9-modern",
+  "version": "3.10.0-experimental.0",
+  "description": "Modern fork of JS9 — astronomical FITS image display in the browser (WebAssembly engine, node build, static-first). Fork of ericmandel/js9.",
+  "main": "_site/js9.min.js",
+  "jsdelivr": "_site/js9.min.js",
+  "unpkg": "_site/js9.min.js",
+  "files": [
+    "_site/js9.js",
+    "_site/js9.min.js",
+    "_site/js9.css",
+    "_site/js9support.js",
+    "_site/js9support.min.js",
+    "_site/js9support.css",
+    "_site/js9support.txt",
+    "_site/js9plugins.js",
+    "_site/js9plugins.min.js",
+    "_site/js9-allinone.js",
+    "_site/js9-allinone.css",
+    "_site/js9prefs.js",
+    "_site/js9Prefs.json",
+    "_site/js9worker.js",
+    "_site/js9PostMessage.js",
+    "_site/astroem.js",
+    "_site/astroemw.js",
+    "_site/astroemw.wasm",
+    "_site/images/toolbar",
+    "_site/images/js9logo/png",
+    "_site/images/js9logo.png",
+    "_site/images/js9-apple-touch-icon.png",
+    "_site/images/*.gif",
+    "_site/images/*.svg",
+    "_site/images/gears.png",
+    "_site/images/sun.png",
+    "_site/images/4arrow.png",
+    "_site/images/indentbg*.png",
+    "_site/font",
+    "_site/params"
+  ],
   "scripts": {
     "start": "build/quicktest",
     "test": "playwright test",
@@ -17,28 +51,28 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ericmandel/js9.git"
+    "url": "https://github.com/sarhatabaot/js9.git"
   },
   "keywords": [
     "astronomy",
-    "software",
-    "image display"
+    "fits",
+    "image display",
+    "visualization",
+    "wasm",
+    "webassembly",
+    "ds9",
+    "js9"
   ],
   "author": "Eric Mandel <eric@cfa.harvard.edu> (https://js9.si.edu)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ericmandel/js9/issues"
+    "url": "https://github.com/sarhatabaot/js9/issues"
   },
-  "homepage": "https://js9.si.edu",
-  "bundledDependencies": [
-    "minimist",
-    "open",
-    "ps-list",
-    "rimraf",
-    "socket.io",
-    "uuid"
-  ],
-  "dependencies": {
+  "homepage": "https://sarhatabaot.net/js9/",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.6",
+    "@playwright/test": "^1.61.1",
+    "esbuild": "^0.28.1",
     "minimist": "^1.2.7",
     "open": "^8.2.1",
     "ps-list": "^7.2.0",
@@ -46,18 +80,5 @@
     "socket.io": "^4.5.4",
     "socket.io-client": "^4.5.4",
     "uuid": "^9.0.0"
-  },
-  "devDependencies": {
-    "@11ty/eleventy": "^3.1.6",
-    "@playwright/test": "^1.61.1",
-    "esbuild": "^0.28.1"
-  },
-  "bundleDependencies": [
-    "minimist",
-    "open",
-    "ps-list",
-    "rimraf",
-    "socket.io",
-    "uuid"
-  ]
+  }
 }
