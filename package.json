@@ -7,6 +7,7 @@
     "start": "build/quicktest",
     "test": "playwright test",
     "test:quick": "build/quicktest build/i800400.fits.gz",
+    "prepare": "node scripts/build.mjs",
     "build": "node scripts/build.mjs",
     "build:min": "node scripts/minify.mjs js9.js js9plugins.js"
   },

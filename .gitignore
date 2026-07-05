@@ -40,3 +40,17 @@ node_modules/
 # Playwright test artifacts
 /test-results/
 /playwright-report/
+
+# Generated build artifacts — produced by `npm run build` (scripts/build.mjs),
+# not committed. A clone gets them via the `prepare` hook on `npm install`;
+# `npm publish` ships them (see .npmignore). Sources (js9.js, js9.css, css/,
+# js/, plugins/, astroem*) are NOT here — only build outputs.
+/js9support.js
+/js9support.min.js
+/js9support.css
+/js9support.txt
+/js9plugins.js
+/js9plugins.min.js
+/js9.min.js
+/js9-allinone.js
+/js9-allinone.css

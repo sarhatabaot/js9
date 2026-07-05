@@ -1,0 +1,43 @@
+# npm packaging ignore list.
+#
+# npm prefers this file over .gitignore when packing. It deliberately mirrors
+# .gitignore's dev/build excludes but does NOT list the generated js9*.min.js /
+# js9-allinone.* / js9support.* artifacts — those are gitignored yet must ship
+# in the published package (the `prepare` hook builds them before pack/publish).
+
+*.o
+*.a
+*~
+*.so
+*.bak
+*.pyc
+*-orig
+*-sav
+foo*
+goo*
+conf.h
+config.status
+config.log
+config.cache
+debug*.html
+debug*.py
+TODO
+BUGS
+tpos
+js9helper
+js9helper.pc
+.DS_Store
+a.out.dSYM
+/Makefile
+/src/Makefile
+/astroem/jsfitsio/Makefile
+/astroem/wrappers/Makefile
+/data
+/tests2
+/notes
+/old
+/tmp
+/talks
+node_modules/
+/test-results/
+/playwright-report/
