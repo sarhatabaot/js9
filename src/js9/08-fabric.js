@@ -366,140 +366,8 @@ JS9.Fabric.newShapeLayer = function(layerName, layerOpts, divjq){
     if( dlayer.opts.selectable ){
 	dlayer.opts.canvas.selection = true;
     }
-    // are mouse callbacks defined in the opts object?
-    if( dlayer.opts.onmousedown || dlayer.opts.onmouseup  ||
-	dlayer.opts.onmousemove || dlayer.opts.tooltip    ||
-	dlayer.opts.onmouseover || dlayer.opts.onmouseout ){
-	dlayer.opts.evented = true;
-	if( dlayer.opts.onmousedown ){
-	    dlayer.canvas.on("mouse:down", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    let target = opts.target;
-		    // nb: target might be a polygon anchor => no params
-		    let params = target.params;
-		    // set click state but ignore unchangeable regions
-		    if( !params || (params && params.changeable !== false) ){
-			// on main window, set region click
-			if( dlayer.dtype === "main" ){
-			    dlayer.display.image.clickInRegion = true;
-			    dlayer.display.image.clickInLayer = layerName;
-			}
-			dlayer.opts.onmousedown.call(dlayer.canvas,
-						     dlayer.display.image,
-						     target.pub,
-						     opts.e, target);
-		    }
-		} else {
-		    // only allow fabric selection if we have special key down
-		    dlayer.canvas._selection = dlayer.canvas.selection;
-		    if( dlayer.canvas.selection ){
-			dlayer.canvas.selection = JS9.specialKey(opts.e);
-		    }
-		}
-	    });
-	} else {
-	    dlayer.canvas.on("mouse:down", (opts) => {
-		// only allow fabric selection if we have special key down
-		dlayer.canvas._selection = dlayer.canvas.selection;
-		if( dlayer.canvas.selection ){
-		    dlayer.canvas.selection = JS9.specialKey(opts.e);
-		}
-	    });
-	}
-	if( dlayer.opts.onmouseup ){
-	    dlayer.canvas.on("mouse:up", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmouseup.call(dlayer.canvas,
-					       dlayer.display.image,
-					       opts.target.pub,
-					       opts.e, opts.target);
-		}
-		// restore original selection state
-		dlayer.canvas.selection = dlayer.canvas._selection ||
-		                          dlayer.canvas.selection;
-	    });
-	} else {
-	    dlayer.canvas.on("mouse:up", () => {
-		// restore original selection state
-		dlayer.canvas.selection = dlayer.canvas._selection ||
-                                          dlayer.canvas.selection;
-	    });
-	}
-	if( dlayer.opts.onmousemove ){
-	    dlayer.canvas.on("mouse:move", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmousemove.call(dlayer.canvas,
-						 dlayer.display.image,
-						 opts.target.pub,
-						 opts.e, opts.target);
-		}
-	    });
-	}
-	if( dlayer.opts.onmouseover ){
-	    dlayer.canvas.on("mouse:over", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmouseover.call(dlayer.canvas,
-						 dlayer.display.image,
-						 opts.target.pub,
-						 opts.e, opts.target);
-		}
-	    });
-	}
-	if( dlayer.opts.onmouseout ){
-	    dlayer.canvas.on("mouse:out", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmouseout.call(dlayer.canvas,
-						dlayer.display.image,
-						opts.target.pub,
-						opts.e, opts.target);
-		}
-	    });
-	}
-	if( dlayer.opts.onmousedblclick ){
-	    dlayer.canvas.on("mouse:dblclick", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmousedblclick.call(dlayer.canvas,
-						     dlayer.display.image,
-						     opts.target.pub,
-						     opts.e, opts.target);
-		}
-	    });
-	}
-	if( dlayer.opts.tooltip ){
-	    dlayer.canvas.on("mouse:over", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    JS9.tooltip(opts.target.left+opts.target.width+2,
-				opts.target.top+opts.target.height+2,
-				dlayer.opts.tooltip,
-				dlayer.display.image,
-				opts.target.pub,
-				opts.e, opts.target);
-		}
-	    });
-	    dlayer.canvas.on("mouse:out", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    JS9.tooltip(opts.target.left, opts.target.top,
-				null,
-				dlayer.display.image,
-				opts.target.pub,
-				opts.e, opts.target);
-		}
-	    });
-	}
-    } else {
-	dlayer.canvas.on("mouse:down", (opts) => {
-	    // only allow fabric selection if we have special key down
-	    dlayer.canvas._selection = dlayer.canvas.selection;
-	    if( dlayer.canvas.selection ){
-		dlayer.canvas.selection = JS9.specialKey(opts.e);
-	    }
-	});
-	dlayer.canvas.on("mouse:up", () => {
-	    // restore original selection state
-	    dlayer.canvas.selection = dlayer.canvas._selection ||
-                                      dlayer.canvas.selection;
-	});
-    }
+    // bind user-supplied mouse callbacks (from layerOpts) to canvas events
+    JS9.Fabric._bindLayerMouseCallbacks(dlayer, layerName);
     // object modified
     dlayer.canvas.on("object:modified", (opts) => {
 	let o, i, olen, myWidth, myHeight;
@@ -657,6 +525,145 @@ JS9.Fabric.newShapeLayer = function(layerName, layerOpts, divjq){
 	}
     }
     return dlayer;
+};
+
+// bind a layer's user-supplied mouse callbacks (onmousedown/up/move/over/out/
+// dblclick + tooltip, from layerOpts) to its fabric canvas events. Extracted
+// from newShapeLayer; needs only the display-layer object and its name.
+JS9.Fabric._bindLayerMouseCallbacks = function(dlayer, layerName){
+    if( dlayer.opts.onmousedown || dlayer.opts.onmouseup  ||
+	dlayer.opts.onmousemove || dlayer.opts.tooltip    ||
+	dlayer.opts.onmouseover || dlayer.opts.onmouseout ){
+	dlayer.opts.evented = true;
+	if( dlayer.opts.onmousedown ){
+	    dlayer.canvas.on("mouse:down", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    let target = opts.target;
+		    // nb: target might be a polygon anchor => no params
+		    let params = target.params;
+		    // set click state but ignore unchangeable regions
+		    if( !params || (params && params.changeable !== false) ){
+			// on main window, set region click
+			if( dlayer.dtype === "main" ){
+			    dlayer.display.image.clickInRegion = true;
+			    dlayer.display.image.clickInLayer = layerName;
+			}
+			dlayer.opts.onmousedown.call(dlayer.canvas,
+						     dlayer.display.image,
+						     target.pub,
+						     opts.e, target);
+		    }
+		} else {
+		    // only allow fabric selection if we have special key down
+		    dlayer.canvas._selection = dlayer.canvas.selection;
+		    if( dlayer.canvas.selection ){
+			dlayer.canvas.selection = JS9.specialKey(opts.e);
+		    }
+		}
+	    });
+	} else {
+	    dlayer.canvas.on("mouse:down", (opts) => {
+		// only allow fabric selection if we have special key down
+		dlayer.canvas._selection = dlayer.canvas.selection;
+		if( dlayer.canvas.selection ){
+		    dlayer.canvas.selection = JS9.specialKey(opts.e);
+		}
+	    });
+	}
+	if( dlayer.opts.onmouseup ){
+	    dlayer.canvas.on("mouse:up", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmouseup.call(dlayer.canvas,
+					       dlayer.display.image,
+					       opts.target.pub,
+					       opts.e, opts.target);
+		}
+		// restore original selection state
+		dlayer.canvas.selection = dlayer.canvas._selection ||
+		                          dlayer.canvas.selection;
+	    });
+	} else {
+	    dlayer.canvas.on("mouse:up", () => {
+		// restore original selection state
+		dlayer.canvas.selection = dlayer.canvas._selection ||
+                                          dlayer.canvas.selection;
+	    });
+	}
+	if( dlayer.opts.onmousemove ){
+	    dlayer.canvas.on("mouse:move", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmousemove.call(dlayer.canvas,
+						 dlayer.display.image,
+						 opts.target.pub,
+						 opts.e, opts.target);
+		}
+	    });
+	}
+	if( dlayer.opts.onmouseover ){
+	    dlayer.canvas.on("mouse:over", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmouseover.call(dlayer.canvas,
+						 dlayer.display.image,
+						 opts.target.pub,
+						 opts.e, opts.target);
+		}
+	    });
+	}
+	if( dlayer.opts.onmouseout ){
+	    dlayer.canvas.on("mouse:out", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmouseout.call(dlayer.canvas,
+						dlayer.display.image,
+						opts.target.pub,
+						opts.e, opts.target);
+		}
+	    });
+	}
+	if( dlayer.opts.onmousedblclick ){
+	    dlayer.canvas.on("mouse:dblclick", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmousedblclick.call(dlayer.canvas,
+						     dlayer.display.image,
+						     opts.target.pub,
+						     opts.e, opts.target);
+		}
+	    });
+	}
+	if( dlayer.opts.tooltip ){
+	    dlayer.canvas.on("mouse:over", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    JS9.tooltip(opts.target.left+opts.target.width+2,
+				opts.target.top+opts.target.height+2,
+				dlayer.opts.tooltip,
+				dlayer.display.image,
+				opts.target.pub,
+				opts.e, opts.target);
+		}
+	    });
+	    dlayer.canvas.on("mouse:out", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    JS9.tooltip(opts.target.left, opts.target.top,
+				null,
+				dlayer.display.image,
+				opts.target.pub,
+				opts.e, opts.target);
+		}
+	    });
+	}
+    } else {
+	dlayer.canvas.on("mouse:down", (opts) => {
+	    // only allow fabric selection if we have special key down
+	    dlayer.canvas._selection = dlayer.canvas.selection;
+	    if( dlayer.canvas.selection ){
+		dlayer.canvas.selection = JS9.specialKey(opts.e);
+	    }
+	});
+	dlayer.canvas.on("mouse:up", () => {
+	    // restore original selection state
+	    dlayer.canvas.selection = dlayer.canvas._selection ||
+                                      dlayer.canvas.selection;
+	});
+    }
 };
 
 // ---------------------------------------------------------------------------
@@ -946,15 +953,8 @@ JS9.Fabric.activeShapeLayer = function(s){
     return rtn;
 };
 
-// process options, separating into fabric opts and params
-// call using image context
-JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
-    let i, j, tval1, tags, pos, cpos, len, zoom, owcssys, txeq, pt;
-    let key, shape, radinc, nrad, radius, tf, arr, parent;
-    const nopts = {}, nparams = {};
-    const YFUDGE = 1;
-    // get color for a given shape tag
-    const tagColor = (tags, tagcolors, obj) => {
+// get color for a given shape tag (extracted from _parseShapeOptions)
+JS9.Fabric._shapeTagColor = function(tags, tagcolors, obj){
 	let tkey, ctags, color;
 	tagcolors = tagcolors || {};
 	// look through the color keys for exact match
@@ -991,7 +991,15 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
 	color = color || (obj && obj.get("stroke")) ||
 	        tagcolors.defcolor || JS9.globalOpts.defcolor || "#000000";
 	return color;
-    };
+};
+
+// process options, separating into fabric opts and params
+// call using image context
+JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
+    let i, tval1, tags, pos, zoom, owcssys, txeq;
+    let shape, tf, arr, parent;
+    const nopts = {}, nparams = {};
+    const YFUDGE = 1;
     // opts is optional
     opts = opts || {};
     // remove means nothing else matters
@@ -1174,7 +1182,82 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
     if( opts.strokeWidth === "" ){
 	opts.strokeWidth = JS9.Fabric.opts.strokeWidth;
     }
-    // shape-specific processing
+    // shape-specific size/scale/geometry processing
+    this._parseShapeSizeOpts(opts, nopts, nparams, obj, zoom);
+    // separate opts into fabric opts (nopts) and JS9 params (nparams)
+    shape = JS9.Fabric._separateShapeOpts(opts, nopts, nparams);
+    // finalize some properties
+    nopts.stroke = nparams.color || nopts.stroke ||
+	           JS9.Fabric._shapeTagColor(nparams.tags, nparams.tagcolors, obj);
+    nopts.selectColor = nopts.stroke;
+    if( JS9.globalOpts.controlsMatchRegion === true ||
+	JS9.globalOpts.controlsMatchRegion === "corner" ){
+	nopts.cornerColor = nopts.stroke;
+    }
+    if( JS9.globalOpts.controlsMatchRegion === true ||
+	JS9.globalOpts.controlsMatchRegion === "border" ){
+	nopts.borderColor = nopts.stroke;
+    }
+    // deprecated
+    if( (nparams.changeable === undefined)  &&
+	(nparams.fixinplace !== undefined)  ){
+	nparams.changeable = !nparams.fixinplace;
+    }
+    // locked: opposite alias of changeable
+    if( (nparams.changeable === undefined)  &&
+	(nparams.locked !== undefined)      ){
+	nparams.changeable = !nparams.locked;
+    }
+    // changeable: short-hand for allowing objects to move and resize
+    if( nparams.changeable !== undefined || nparams.editing !== undefined ){
+	if( nparams.editing !== undefined ){
+	    tf = nparams.editing;
+	} else {
+	    tf = !nparams.changeable;
+	}
+	nopts.lockMovementX = tf;
+	nopts.lockMovementY = tf;
+	nopts.lockRotation = tf;
+	nopts.lockScalingX = tf;
+	nopts.lockScalingY = tf;
+	nopts.hasControls = !tf;
+	nopts.hasRotatingPoint = !tf;
+	nopts.hasBorders = !tf;
+    }
+    // movable means x and y movement
+    if( nparams.movable !== undefined ){
+	tf = !nparams.movable;
+	nopts.lockMovementX = tf;
+	nopts.lockMovementY = tf;
+    }
+    // resizable
+    if( nparams.resizable !== undefined ){
+	tf = nparams.resizable;
+	nopts.hasControls = tf;
+	nopts.hasBorders = tf;
+    }
+    // rotatable
+    if( nparams.rotatable !== undefined ){
+	tf = !nparams.rotatable;
+	if( nopts.lockRotation === undefined ){
+	    nopts.lockRotation = tf;
+	    nopts.hasRotatingPoint = !tf;
+	}
+    }
+    // editing affects visibility of shape
+    if( nparams.editing !== undefined ){
+	nopts.visible = !nparams.editing;
+    }
+    // return shape, opts and params
+    return {shape: shape, opts: nopts, params: nparams};
+};
+
+// per-shape size/scale/geometry processing (annulus radii, box/circle/
+// ellipse sizing, point geometry, polygon/line points incl. WCS->display
+// conversion). Extracted from _parseShapeOptions; runs in image context
+// (registered in initGraphics).
+JS9.Fabric._parseShapeSizeOpts = function(opts, nopts, nparams, obj, zoom){
+    let i, j, radinc, nrad, radius, owcssys, txeq, arr, len, pt, cpos, pos;
     switch(opts.shape){
     case "annulus":
 	nparams.radii = [];
@@ -1410,7 +1493,12 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
     case "text":
 	break;
     }
-    // separate opts and params
+};
+
+// route a shape's opts into fabric opts (nopts) vs JS9 params (nparams),
+// returning the shape type. Extracted from _parseShapeOptions; no `this`.
+JS9.Fabric._separateShapeOpts = function(opts, nopts, nparams){
+    let key, shape;
     for( key of Object.keys(opts) ){
 	// eslint-disable no-fallthrough
 	switch(key){
@@ -1507,70 +1595,7 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
 	}
 	// eslint-enable no-fallthrough
     }
-    // finalize some properties
-    nopts.stroke = nparams.color || nopts.stroke ||
-	           tagColor(nparams.tags, nparams.tagcolors, obj);
-    nopts.selectColor = nopts.stroke;
-    if( JS9.globalOpts.controlsMatchRegion === true ||
-	JS9.globalOpts.controlsMatchRegion === "corner" ){
-	nopts.cornerColor = nopts.stroke;
-    }
-    if( JS9.globalOpts.controlsMatchRegion === true ||
-	JS9.globalOpts.controlsMatchRegion === "border" ){
-	nopts.borderColor = nopts.stroke;
-    }
-    // deprecated
-    if( (nparams.changeable === undefined)  &&
-	(nparams.fixinplace !== undefined)  ){
-	nparams.changeable = !nparams.fixinplace;
-    }
-    // locked: opposite alias of changeable
-    if( (nparams.changeable === undefined)  &&
-	(nparams.locked !== undefined)      ){
-	nparams.changeable = !nparams.locked;
-    }
-    // changeable: short-hand for allowing objects to move and resize
-    if( nparams.changeable !== undefined || nparams.editing !== undefined ){
-	if( nparams.editing !== undefined ){
-	    tf = nparams.editing;
-	} else {
-	    tf = !nparams.changeable;
-	}
-	nopts.lockMovementX = tf;
-	nopts.lockMovementY = tf;
-	nopts.lockRotation = tf;
-	nopts.lockScalingX = tf;
-	nopts.lockScalingY = tf;
-	nopts.hasControls = !tf;
-	nopts.hasRotatingPoint = !tf;
-	nopts.hasBorders = !tf;
-    }
-    // movable means x and y movement
-    if( nparams.movable !== undefined ){
-	tf = !nparams.movable;
-	nopts.lockMovementX = tf;
-	nopts.lockMovementY = tf;
-    }
-    // resizable
-    if( nparams.resizable !== undefined ){
-	tf = nparams.resizable;
-	nopts.hasControls = tf;
-	nopts.hasBorders = tf;
-    }
-    // rotatable
-    if( nparams.rotatable !== undefined ){
-	tf = !nparams.rotatable;
-	if( nopts.lockRotation === undefined ){
-	    nopts.lockRotation = tf;
-	    nopts.hasRotatingPoint = !tf;
-	}
-    }
-    // editing affects visibility of shape
-    if( nparams.editing !== undefined ){
-	nopts.visible = !nparams.editing;
-    }
-    // return shape, opts and params
-    return {shape: shape, opts: nopts, params: nparams};
+    return shape;
 };
 
 // given an object full of keys, return an array of key names for export
@@ -1735,10 +1760,9 @@ JS9.Fabric._handleChildText = function(layerName, s, opts){
 // add shapes to a layer
 // call using image context
 JS9.Fabric.addShapes = function(layerName, shape, myopts){
-    let i, sobj, sarr, carr, ns, s, bopts, opts, layer, canvas, dlayer;
-    let zoom, ttop, tleft, tangle, w2, h2, key;
+    let sobj, sarr, carr, ns, s, bopts, opts, layer, canvas, dlayer;
+    let zoom, key;
     let params = {};
-    let rarr = [], parr = [];
     const objs = [];
     const grp = {};
     // is this core service disabled?
@@ -1872,7 +1896,88 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	    $.inArray(sobj.shape, layer.opts.noCenteredScaling) >= 0 ){
 	    opts.centeredScaling = false;
 	}
-	// create the shape
+	// build the fabric object for this shape
+	s = this._createShapeObject(sobj, opts, params);
+	// add new shape to canvas
+	canvas.add(s);
+	// backlink to layer name
+	params.layerName = layerName;
+	// save original strokeWidth for zooming
+	params.sw1 = Math.max(1, Math.floor(s.strokeWidth + 0.5));
+	// initialize
+	params.listonchange = false;
+	// breaks panner, magnifier
+	// save custom attributes in the params object
+	// s.set("params", params);
+	s.params = params;
+	// set scaling based on zoom factor
+	if( this.display.layers[layerName].dtype === "main" &&
+	    !s.params.preservedcoords ){
+	    zoom = this.rgb.sect.zoom;
+	} else {
+	    zoom = 1;
+	}
+	if( layer.opts.panzoom ){
+	    switch(params.shape){
+	    case "point":
+	    case "text":
+		break;
+	    default:
+		s.scale(zoom);
+		break;
+	    }
+	}
+	// and then rescale the stroke width
+	s.rescaleBorder();
+	// non-changeable shapes go to back
+	if( s.params.changeable === false ){
+	    canvas.sendToBack(s);
+	}
+	// might need to make a text shape as a child of this shape
+	this._handleChildText(layerName, s, opts);
+	// update the shape info, but not TBD children (will get done later)
+	if( myopts.parent !== "TBD" ){
+	    this._updateShape(layerName, s, null, "add", params);
+	}
+	// callback if necessary
+	if( myopts.onaddshapes && s.pub ){
+	    try{ JS9.xeqByName(myopts.onaddshapes, this, this, s.pub); }
+	    catch(e){ JS9.error("in onaddshapes callback", e, false); }
+	}
+	// save public object in object array, might be needed in return
+	objs.push(s);
+	// save grouped objects
+	if( opts.groupid ){
+	    grp[opts.groupid] = grp[opts.groupid] || [];
+	    grp[opts.groupid].push(s);
+	}
+    }
+    // construct groups, if necessary
+    for( key of Object.keys(grp) ){
+	this.groupShapes(layerName, grp[key], {groupid: key, select: false});
+    }
+    // redraw (unless explicitly specified otherwise)
+    if( (params.redraw === undefined) || params.redraw ){
+	canvas.renderAll();
+    }
+    // return last object (internal use for child regions), if necessary
+    if( myopts.rtn === "object" ){
+	return s;
+    }
+    // return all objects (internal use for paste regions), if necessary
+    if( myopts.rtn === "objs" ){
+	return objs;
+    }
+    // return shape id
+    return params.id;
+};
+
+// build the fabric object for a single shape: a factory extracted from
+// addShapes. Reads sobj.shape plus the opts/params objects and returns the
+// new fabric shape (mutating opts/params as the old inline switch did).
+// call using image context
+JS9.Fabric._createShapeObject = function(sobj, opts, params){
+	let i, ttop, tleft, tangle, w2, h2, rarr, parr, s;
 	switch(sobj.shape){
 	case "annulus":
 	    // save shape
@@ -2002,78 +2107,7 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	    JS9.error(`unknown shape: ${sobj.shape}`);
 	    break;
 	}
-	// add new shape to canvas
-	canvas.add(s);
-	// backlink to layer name
-	params.layerName = layerName;
-	// save original strokeWidth for zooming
-	params.sw1 = Math.max(1, Math.floor(s.strokeWidth + 0.5));
-	// initialize
-	params.listonchange = false;
-	// breaks panner, magnifier
-	// save custom attributes in the params object
-	// s.set("params", params);
-	s.params = params;
-	// set scaling based on zoom factor
-	if( this.display.layers[layerName].dtype === "main" &&
-	    !s.params.preservedcoords ){
-	    zoom = this.rgb.sect.zoom;
-	} else {
-	    zoom = 1;
-	}
-	if( layer.opts.panzoom ){
-	    switch(params.shape){
-	    case "point":
-	    case "text":
-		break;
-	    default:
-		s.scale(zoom);
-		break;
-	    }
-	}
-	// and then rescale the stroke width
-	s.rescaleBorder();
-	// non-changeable shapes go to back
-	if( s.params.changeable === false ){
-	    canvas.sendToBack(s);
-	}
-	// might need to make a text shape as a child of this shape
-	this._handleChildText(layerName, s, opts);
-	// update the shape info, but not TBD children (will get done later)
-	if( myopts.parent !== "TBD" ){
-	    this._updateShape(layerName, s, null, "add", params);
-	}
-	// callback if necessary
-	if( myopts.onaddshapes && s.pub ){
-	    try{ JS9.xeqByName(myopts.onaddshapes, this, this, s.pub); }
-	    catch(e){ JS9.error("in onaddshapes callback", e, false); }
-	}
-	// save public object in object array, might be needed in return
-	objs.push(s);
-	// save grouped objects
-	if( opts.groupid ){
-	    grp[opts.groupid] = grp[opts.groupid] || [];
-	    grp[opts.groupid].push(s);
-	}
-    }
-    // construct groups, if necessary
-    for( key of Object.keys(grp) ){
-	this.groupShapes(layerName, grp[key], {groupid: key, select: false});
-    }
-    // redraw (unless explicitly specified otherwise)
-    if( (params.redraw === undefined) || params.redraw ){
-	canvas.renderAll();
-    }
-    // return last object (internal use for child regions), if necessary
-    if( myopts.rtn === "object" ){
 	return s;
-    }
-    // return all objects (internal use for paste regions), if necessary
-    if( myopts.rtn === "objs" ){
-	return objs;
-    }
-    // return shape id
-    return params.id;
 };
 
 // call regSelect parser on a selection
@@ -4544,8 +4578,10 @@ JS9.Fabric.initGraphics = function(){
     JS9.Image.prototype._updateShape = JS9.Fabric._updateShape;
     JS9.Image.prototype._parseShapes = JS9.Fabric._parseShapes;
     JS9.Image.prototype._parseShapeOptions = JS9.Fabric._parseShapeOptions;
+    JS9.Image.prototype._parseShapeSizeOpts = JS9.Fabric._parseShapeSizeOpts;
     JS9.Image.prototype._exportShapeOptions = JS9.Fabric._exportShapeOptions;
     JS9.Image.prototype._handleChildText = JS9.Fabric._handleChildText;
+    JS9.Image.prototype._createShapeObject = JS9.Fabric._createShapeObject;
     JS9.Image.prototype._addPolygonPoint = JS9.Fabric._addPolygonPoint;
     JS9.Image.prototype._removePolygonPoint = JS9.Fabric._removePolygonPoint;
     JS9.Image.prototype._ungroupAnnulus = JS9.Fabric._ungroupAnnulus;
