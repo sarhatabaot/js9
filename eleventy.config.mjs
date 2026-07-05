@@ -17,6 +17,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "docs/assets/font": "font" });
   eleventyConfig.addPassthroughCopy({ "docs/assets/params": "params" });
   eleventyConfig.addPassthroughCopy({ "docs/demos/data": "demos/data" });
+  eleventyConfig.addPassthroughCopy({ "docs/favicon.ico": "favicon.ico" });
 
   return {
     dir: { input: "docs", output: "_site", includes: "_includes" },

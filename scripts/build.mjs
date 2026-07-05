@@ -75,7 +75,7 @@ const PLUGINFILES = [
 // runtime relative to INSTALLDIR, which resolves to _site/'s root).
 const RUNTIME = [
   "js9.js", "js9.css", "js9prefs.js", "js9Prefs.json", "js9worker.js",
-  "astroem.js", "astroemw.js", "astroemw.wasm", "favicon.ico",
+  "astroem.js", "astroemw.js", "astroemw.wasm",
 ];
 
 // --- helpers ---------------------------------------------------------------
