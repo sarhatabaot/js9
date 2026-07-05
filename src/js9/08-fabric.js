@@ -1735,10 +1735,9 @@ JS9.Fabric._handleChildText = function(layerName, s, opts){
 // add shapes to a layer
 // call using image context
 JS9.Fabric.addShapes = function(layerName, shape, myopts){
-    let i, sobj, sarr, carr, ns, s, bopts, opts, layer, canvas, dlayer;
-    let zoom, ttop, tleft, tangle, w2, h2, key;
+    let sobj, sarr, carr, ns, s, bopts, opts, layer, canvas, dlayer;
+    let zoom, key;
     let params = {};
-    let rarr = [], parr = [];
     const objs = [];
     const grp = {};
     // is this core service disabled?
@@ -1872,7 +1871,88 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	    $.inArray(sobj.shape, layer.opts.noCenteredScaling) >= 0 ){
 	    opts.centeredScaling = false;
 	}
-	// create the shape
+	// build the fabric object for this shape
+	s = this._createShapeObject(sobj, opts, params);
+	// add new shape to canvas
+	canvas.add(s);
+	// backlink to layer name
+	params.layerName = layerName;
+	// save original strokeWidth for zooming
+	params.sw1 = Math.max(1, Math.floor(s.strokeWidth + 0.5));
+	// initialize
+	params.listonchange = false;
+	// breaks panner, magnifier
+	// save custom attributes in the params object
+	// s.set("params", params);
+	s.params = params;
+	// set scaling based on zoom factor
+	if( this.display.layers[layerName].dtype === "main" &&
+	    !s.params.preservedcoords ){
+	    zoom = this.rgb.sect.zoom;
+	} else {
+	    zoom = 1;
+	}
+	if( layer.opts.panzoom ){
+	    switch(params.shape){
+	    case "point":
+	    case "text":
+		break;
+	    default:
+		s.scale(zoom);
+		break;
+	    }
+	}
+	// and then rescale the stroke width
+	s.rescaleBorder();
+	// non-changeable shapes go to back
+	if( s.params.changeable === false ){
+	    canvas.sendToBack(s);
+	}
+	// might need to make a text shape as a child of this shape
+	this._handleChildText(layerName, s, opts);
+	// update the shape info, but not TBD children (will get done later)
+	if( myopts.parent !== "TBD" ){
+	    this._updateShape(layerName, s, null, "add", params);
+	}
+	// callback if necessary
+	if( myopts.onaddshapes && s.pub ){
+	    try{ JS9.xeqByName(myopts.onaddshapes, this, this, s.pub); }
+	    catch(e){ JS9.error("in onaddshapes callback", e, false); }
+	}
+	// save public object in object array, might be needed in return
+	objs.push(s);
+	// save grouped objects
+	if( opts.groupid ){
+	    grp[opts.groupid] = grp[opts.groupid] || [];
+	    grp[opts.groupid].push(s);
+	}
+    }
+    // construct groups, if necessary
+    for( key of Object.keys(grp) ){
+	this.groupShapes(layerName, grp[key], {groupid: key, select: false});
+    }
+    // redraw (unless explicitly specified otherwise)
+    if( (params.redraw === undefined) || params.redraw ){
+	canvas.renderAll();
+    }
+    // return last object (internal use for child regions), if necessary
+    if( myopts.rtn === "object" ){
+	return s;
+    }
+    // return all objects (internal use for paste regions), if necessary
+    if( myopts.rtn === "objs" ){
+	return objs;
+    }
+    // return shape id
+    return params.id;
+};
+
+// build the fabric object for a single shape: a factory extracted from
+// addShapes. Reads sobj.shape plus the opts/params objects and returns the
+// new fabric shape (mutating opts/params as the old inline switch did).
+// call using image context
+JS9.Fabric._createShapeObject = function(sobj, opts, params){
+	let i, ttop, tleft, tangle, w2, h2, rarr, parr, s;
 	switch(sobj.shape){
 	case "annulus":
 	    // save shape
@@ -2002,78 +2082,7 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	    JS9.error(`unknown shape: ${sobj.shape}`);
 	    break;
 	}
-	// add new shape to canvas
-	canvas.add(s);
-	// backlink to layer name
-	params.layerName = layerName;
-	// save original strokeWidth for zooming
-	params.sw1 = Math.max(1, Math.floor(s.strokeWidth + 0.5));
-	// initialize
-	params.listonchange = false;
-	// breaks panner, magnifier
-	// save custom attributes in the params object
-	// s.set("params", params);
-	s.params = params;
-	// set scaling based on zoom factor
-	if( this.display.layers[layerName].dtype === "main" &&
-	    !s.params.preservedcoords ){
-	    zoom = this.rgb.sect.zoom;
-	} else {
-	    zoom = 1;
-	}
-	if( layer.opts.panzoom ){
-	    switch(params.shape){
-	    case "point":
-	    case "text":
-		break;
-	    default:
-		s.scale(zoom);
-		break;
-	    }
-	}
-	// and then rescale the stroke width
-	s.rescaleBorder();
-	// non-changeable shapes go to back
-	if( s.params.changeable === false ){
-	    canvas.sendToBack(s);
-	}
-	// might need to make a text shape as a child of this shape
-	this._handleChildText(layerName, s, opts);
-	// update the shape info, but not TBD children (will get done later)
-	if( myopts.parent !== "TBD" ){
-	    this._updateShape(layerName, s, null, "add", params);
-	}
-	// callback if necessary
-	if( myopts.onaddshapes && s.pub ){
-	    try{ JS9.xeqByName(myopts.onaddshapes, this, this, s.pub); }
-	    catch(e){ JS9.error("in onaddshapes callback", e, false); }
-	}
-	// save public object in object array, might be needed in return
-	objs.push(s);
-	// save grouped objects
-	if( opts.groupid ){
-	    grp[opts.groupid] = grp[opts.groupid] || [];
-	    grp[opts.groupid].push(s);
-	}
-    }
-    // construct groups, if necessary
-    for( key of Object.keys(grp) ){
-	this.groupShapes(layerName, grp[key], {groupid: key, select: false});
-    }
-    // redraw (unless explicitly specified otherwise)
-    if( (params.redraw === undefined) || params.redraw ){
-	canvas.renderAll();
-    }
-    // return last object (internal use for child regions), if necessary
-    if( myopts.rtn === "object" ){
 	return s;
-    }
-    // return all objects (internal use for paste regions), if necessary
-    if( myopts.rtn === "objs" ){
-	return objs;
-    }
-    // return shape id
-    return params.id;
 };
 
 // call regSelect parser on a selection
@@ -4546,6 +4555,7 @@ JS9.Fabric.initGraphics = function(){
     JS9.Image.prototype._parseShapeOptions = JS9.Fabric._parseShapeOptions;
     JS9.Image.prototype._exportShapeOptions = JS9.Fabric._exportShapeOptions;
     JS9.Image.prototype._handleChildText = JS9.Fabric._handleChildText;
+    JS9.Image.prototype._createShapeObject = JS9.Fabric._createShapeObject;
     JS9.Image.prototype._addPolygonPoint = JS9.Fabric._addPolygonPoint;
     JS9.Image.prototype._removePolygonPoint = JS9.Fabric._removePolygonPoint;
     JS9.Image.prototype._ungroupAnnulus = JS9.Fabric._ungroupAnnulus;
