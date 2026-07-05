@@ -245,29 +245,14 @@ regSelect:	FORCE
 		  jison src/regSelect.jison && mv regSelect.js js/.; \
 		  $(MAKE) js9support;)
 
+# The build (concatenation, minification, all-in-one) is now done by a single
+# Node script (scripts/build.mjs) — no bash/sed/JVM. These targets delegate to
+# it; the file lists live in the script. See tests/ and package.json.
 js9min:		FORCE
-		@(echo "remaking js9.min.js ..."; \
-		  touch js9.js; build/minify js9.js; \
-		  echo "remaking all in one ..."; \
-		  $(BSCR)/mkallinone $(ALLIN1) $(VERSION))
+		@(node scripts/build.mjs)
 
 js9support:	FORCE
-		@(echo "remaking js9support ..."; \
-		  echo "css files in js9support.css: " > js9support.txt; \
-		  echo $(CSSFILES) >>  js9support.txt; \
-		  cat $(CSSFILES)  >  js9support.css;  \
-		  echo $(PLCSSFILES) >>  js9support.txt; \
-		  cat $(PLCSSFILES)  >>  js9support.css;  \
-		  echo "js files in js9support.js: " >> js9support.txt; \
-		  echo $(JSFILES)  >> js9support.txt; \
-		  cat $(JSFILES)   >  js9support.min.js; \
-		  X=`echo "$(JSFILES)" | sed 's/\.min//g'`; \
-		  cat $$X  > js9support.js; \
-		  echo "plugin files in js9plugins.js: " >> js9support.txt; \
-		  echo $(PLUGINFILES)  >> js9support.txt; \
-		  cat $(PLUGINFILES)   >  js9plugins.js; \
-		  echo "remaking all in one ..."; \
-		  $(BSCR)/mkallinone $(ALLIN1) $(VERSION);)
+		@(node scripts/build.mjs)
 
 prefs:		FORCE
 		@(echo "copying default preferences to js9Prefs.json"; \
@@ -502,7 +487,7 @@ install-sao:	install-gzip saoprefs install-webcgi install-demos install-tests
 	  mkdir -p $(WEBDIR)/tmp;)
 
 allinone:	FORCE
-		@($(BSCR)/mkallinone $(ALLIN1) $(VERSION))
+		@(node scripts/build.mjs)
 
 release:	clean
 		(mkdir -p $(DISTDIR)/$(DISTNAME); \

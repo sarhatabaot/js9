@@ -39,8 +39,8 @@ jobs:
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
 
-      - name: Build minified bundle (esbuild, no JVM)
-        run: npm run build:min
+      - name: Build web artifacts (concat + esbuild + all-in-one, no make/JVM)
+        run: npm run build
 
-      - name: End-to-end tests (source + minified bundles)
+      - name: End-to-end tests (source + minified + all-in-one bundles)
         run: npm test

@@ -11,7 +11,11 @@ export const TINY_FITS = "../../../build/i800400.fits.gz";
 
 // Navigate to a harness page and wait until JS9 + the FITS module are ready.
 export async function openHarness(page, variant = "source") {
-  const file = variant === "min" ? "harness-min.html" : "harness.html";
+  const file = {
+    source: "harness.html",
+    min: "harness-min.html",
+    allinone: "harness-allinone.html",
+  }[variant] || "harness.html";
   await page.goto(`/tests/e2e/support/${file}`, { waitUntil: "load" });
   // JS9.fits.name is populated once the astroem wasm module has loaded.
   await page.waitForFunction(

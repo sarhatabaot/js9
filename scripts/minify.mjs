@@ -13,26 +13,19 @@
 import { build } from "esbuild";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const files = process.argv.slice(2);
-if (files.length === 0) {
-  console.error("usage: node scripts/minify.mjs file1.js [file2.js ...]");
-  process.exit(1);
-}
-
-// Preserve the leading block-comment banner (copyright / license) of each
-// source file — esbuild's minifier would otherwise strip it.
+// Preserve the leading block-comment banner (copyright / license) of a source
+// file — esbuild's minifier would otherwise strip it.
 async function leadingBanner(file) {
   const src = await readFile(file, "utf8");
   const m = src.match(/^\s*\/\*[\s\S]*?\*\//);
   return m ? m[0] : "";
 }
 
-for (const file of files) {
-  if (!file.endsWith(".js")) {
-    console.error(`skipping non-.js input: ${file}`);
-    continue;
-  }
+// Minify one "foo.js" into "foo.min.js". Returns the output path.
+export async function minifyFile(file) {
+  if (!file.endsWith(".js")) throw new Error(`not a .js file: ${file}`);
   const outfile = file.replace(/\.js$/, ".min.js");
   const banner = await leadingBanner(file);
   await build({
@@ -45,5 +38,21 @@ for (const file of files) {
     banner: banner ? { js: banner } : undefined,
     logLevel: "warning",
   });
-  console.log(`minified ${path.basename(file)} -> ${path.basename(outfile)}`);
+  return outfile;
+}
+
+async function main(files) {
+  if (files.length === 0) {
+    console.error("usage: node scripts/minify.mjs file1.js [file2.js ...]");
+    process.exit(1);
+  }
+  for (const file of files) {
+    const out = await minifyFile(file);
+    console.log(`minified ${path.basename(file)} -> ${path.basename(out)}`);
+  }
+}
+
+// Run as a CLI only when invoked directly (not when imported by build.mjs).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main(process.argv.slice(2));
 }
