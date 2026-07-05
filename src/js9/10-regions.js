@@ -2224,74 +2224,6 @@ JS9.Regions.parseRegions = function(s, opts){
 	if( s === "0" || s.toLowerCase() === "false" ){return false;}
 	return true;
     };
-    // ds9 compatibility: get properties from comment string
-    const ds9properties = (s) => {
-	let xarr, key, key2, val, nobj;
-	const xobj = {};
-	const rexp = /([a-zA-Z][a-zA-Z0-9_]*)\s*=\s*(\d+(\s*\d+)*|[^ '"{]+|['"{][^'"}]*['"}])/g;
-	const ds9opts = {
-	    color(v) {return {color: v};},
-	    dash(v) {if(v){return {strokeDashArray: [3,1]};}},
-	    dashlist(v) {
-		let i, arr;
-		if( v ){
-		    arr = v.split(" ");
-		    for(i=0; i<arr.length; i++){
-			arr[i] = parseFloat(arr[i]);
-		    }
-		    return {strokeDashArray: arr};
-		}
-	    },
-	    delete(v) {return {removable: tf(v)};},
-	    edit(v) {return {selectable: tf(v)};},
-	    fixed(v) {return {zoomable: !tf(v)};},
-	    font(v) {
-		const obj = {};
-		const arr = v.split(" ");
-		const len = arr.length;
-		if( len >= 1 ){ obj.fontFamily = arr[0]; }
-		if( len >= 2 ){ obj.fontSize = parseFloat(arr[1]); }
-		if( len >= 3 ){ obj.fontStyle  = arr[2]; }
-		if( len >= 4 ){ obj.fontWeight = arr[3]; }
-		return obj;
-	    },
-	    highlite(v) {return {hasControls: tf(v), hasBorders: tf(v), hasRotatingPoint: tf(v)};},
-	    move(v) {return {movable: tf(v)};},
-	    rotate(v) {return {rotatable: tf(v)};},
-	    resize(v) {return {resizable: tf(v)};},
-	    changeable(v) {return {changeable: tf(v)};},
-	    select(v) {return {selectable: tf(v)};},
-	    text(v) {return {text: v};},
-	    tag(v) {return {tags: v};},
-	    width(v) {return {strokeWidth: parseFloat(v)};}
-	};
-	// opts is optional
-	opts = opts || {};
-	// loop through DS9 region properties, converting to js9 props
-	while( (xarr = rexp.exec(s)) !== null ){
-	    key = xarr[1].toLowerCase();
-	    val = xarr[2].replace(/^['"{]|['"}]$/g, "");
-	    if( {}.hasOwnProperty.call(ds9opts, key) &&
-		typeof ds9opts[key] === "function"   ){
-		nobj = ds9opts[key](val) || {};
-		for( key2 of Object.keys(nobj) ){
-		    if( key2 === "tags" && {}.hasOwnProperty.call(xobj, key2) ){
-			xobj[key2] += `,${nobj[key2]}`;
-		    } else {
-			xobj[key2] = nobj[key2];
-		    }
-		}
-	    } else {
-		xobj[key] = val;
-	    }
-	}
-	// save the remaining comment
-	s = s.replace(rexp, "");
-	if( s ){
-	    xobj._comment = s.trim();
-	}
-	return xobj;
-    };
     // parse region line into cmd (shape or wcs), args, opts, comment
     const regparse1 = (s) => {
 	let t, tarr, ds9props;
@@ -2326,7 +2258,7 @@ JS9.Regions.parseRegions = function(s, opts){
 	// look for comments
 	tobj.comment = t[1];
 	if( tobj.comment ){
-	    ds9props = ds9properties(tobj.comment.trim());
+	    ds9props = JS9.Regions._parseDS9Properties(tobj.comment.trim(), tf);
 	    if( ds9props._comment !== undefined ){
 		tobj.comment = ds9props._comment;
 		delete ds9props._comment;
@@ -2588,6 +2520,75 @@ JS9.Regions.parseRegions = function(s, opts){
     JS9.globalOpts.xeqPlugins = txeq;
     // return the generated object
     return regions;
+};
+
+// parse a DS9 region comment string into JS9 shape properties (color, dash,
+// font, edit/move/rotate/tag flags, ...). Extracted from parseRegions; `tf`
+// converts "0"/"false" -> false, else true. call using image context
+JS9.Regions._parseDS9Properties = function(s, tf){
+	let xarr, key, key2, val, nobj;
+	const xobj = {};
+	const rexp = /([a-zA-Z][a-zA-Z0-9_]*)\s*=\s*(\d+(\s*\d+)*|[^ '"{]+|['"{][^'"}]*['"}])/g;
+	const ds9opts = {
+	    color(v) {return {color: v};},
+	    dash(v) {if(v){return {strokeDashArray: [3,1]};}},
+	    dashlist(v) {
+		let i, arr;
+		if( v ){
+		    arr = v.split(" ");
+		    for(i=0; i<arr.length; i++){
+			arr[i] = parseFloat(arr[i]);
+		    }
+		    return {strokeDashArray: arr};
+		}
+	    },
+	    delete(v) {return {removable: tf(v)};},
+	    edit(v) {return {selectable: tf(v)};},
+	    fixed(v) {return {zoomable: !tf(v)};},
+	    font(v) {
+		const obj = {};
+		const arr = v.split(" ");
+		const len = arr.length;
+		if( len >= 1 ){ obj.fontFamily = arr[0]; }
+		if( len >= 2 ){ obj.fontSize = parseFloat(arr[1]); }
+		if( len >= 3 ){ obj.fontStyle  = arr[2]; }
+		if( len >= 4 ){ obj.fontWeight = arr[3]; }
+		return obj;
+	    },
+	    highlite(v) {return {hasControls: tf(v), hasBorders: tf(v), hasRotatingPoint: tf(v)};},
+	    move(v) {return {movable: tf(v)};},
+	    rotate(v) {return {rotatable: tf(v)};},
+	    resize(v) {return {resizable: tf(v)};},
+	    changeable(v) {return {changeable: tf(v)};},
+	    select(v) {return {selectable: tf(v)};},
+	    text(v) {return {text: v};},
+	    tag(v) {return {tags: v};},
+	    width(v) {return {strokeWidth: parseFloat(v)};}
+	};
+	// loop through DS9 region properties, converting to js9 props
+	while( (xarr = rexp.exec(s)) !== null ){
+	    key = xarr[1].toLowerCase();
+	    val = xarr[2].replace(/^['"{]|['"}]$/g, "");
+	    if( {}.hasOwnProperty.call(ds9opts, key) &&
+		typeof ds9opts[key] === "function"   ){
+		nobj = ds9opts[key](val) || {};
+		for( key2 of Object.keys(nobj) ){
+		    if( key2 === "tags" && {}.hasOwnProperty.call(xobj, key2) ){
+			xobj[key2] += `,${nobj[key2]}`;
+		    } else {
+			xobj[key2] = nobj[key2];
+		    }
+		}
+	    } else {
+		xobj[key] = val;
+	    }
+	}
+	// save the remaining comment
+	s = s.replace(rexp, "");
+	if( s ){
+	    xobj._comment = s.trim();
+	}
+	return xobj;
 };
 
 // save regions to a file
