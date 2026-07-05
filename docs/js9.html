@@ -38,6 +38,10 @@ permalink: js9.html
             handle: "#JS9Menubar",
             opacity: 0.35
           });
+          // Preload an example image so the viewer isn't empty on first load.
+          // Swap this for your own FITS (local path or a CORS-enabled URL).
+          JS9.Preload("data/example.fits.gz",
+                      {scale: "log", colormap: "viridis"});
       });
     </script>
 <p>
