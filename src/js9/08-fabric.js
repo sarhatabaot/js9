@@ -957,7 +957,7 @@ JS9.Fabric.activeShapeLayer = function(s){
 // call using image context
 JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
     let i, j, tval1, tags, pos, cpos, len, zoom, owcssys, txeq, pt;
-    let key, shape, radinc, nrad, radius, tf, arr, parent;
+    let shape, radinc, nrad, radius, tf, arr, parent;
     const nopts = {}, nparams = {};
     const YFUDGE = 1;
     // get color for a given shape tag
@@ -1417,7 +1417,78 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
     case "text":
 	break;
     }
-    // separate opts and params
+    // separate opts into fabric opts (nopts) and JS9 params (nparams)
+    shape = JS9.Fabric._separateShapeOpts(opts, nopts, nparams);
+    // finalize some properties
+    nopts.stroke = nparams.color || nopts.stroke ||
+	           tagColor(nparams.tags, nparams.tagcolors, obj);
+    nopts.selectColor = nopts.stroke;
+    if( JS9.globalOpts.controlsMatchRegion === true ||
+	JS9.globalOpts.controlsMatchRegion === "corner" ){
+	nopts.cornerColor = nopts.stroke;
+    }
+    if( JS9.globalOpts.controlsMatchRegion === true ||
+	JS9.globalOpts.controlsMatchRegion === "border" ){
+	nopts.borderColor = nopts.stroke;
+    }
+    // deprecated
+    if( (nparams.changeable === undefined)  &&
+	(nparams.fixinplace !== undefined)  ){
+	nparams.changeable = !nparams.fixinplace;
+    }
+    // locked: opposite alias of changeable
+    if( (nparams.changeable === undefined)  &&
+	(nparams.locked !== undefined)      ){
+	nparams.changeable = !nparams.locked;
+    }
+    // changeable: short-hand for allowing objects to move and resize
+    if( nparams.changeable !== undefined || nparams.editing !== undefined ){
+	if( nparams.editing !== undefined ){
+	    tf = nparams.editing;
+	} else {
+	    tf = !nparams.changeable;
+	}
+	nopts.lockMovementX = tf;
+	nopts.lockMovementY = tf;
+	nopts.lockRotation = tf;
+	nopts.lockScalingX = tf;
+	nopts.lockScalingY = tf;
+	nopts.hasControls = !tf;
+	nopts.hasRotatingPoint = !tf;
+	nopts.hasBorders = !tf;
+    }
+    // movable means x and y movement
+    if( nparams.movable !== undefined ){
+	tf = !nparams.movable;
+	nopts.lockMovementX = tf;
+	nopts.lockMovementY = tf;
+    }
+    // resizable
+    if( nparams.resizable !== undefined ){
+	tf = nparams.resizable;
+	nopts.hasControls = tf;
+	nopts.hasBorders = tf;
+    }
+    // rotatable
+    if( nparams.rotatable !== undefined ){
+	tf = !nparams.rotatable;
+	if( nopts.lockRotation === undefined ){
+	    nopts.lockRotation = tf;
+	    nopts.hasRotatingPoint = !tf;
+	}
+    }
+    // editing affects visibility of shape
+    if( nparams.editing !== undefined ){
+	nopts.visible = !nparams.editing;
+    }
+    // return shape, opts and params
+    return {shape: shape, opts: nopts, params: nparams};
+};
+
+// route a shape's opts into fabric opts (nopts) vs JS9 params (nparams),
+// returning the shape type. Extracted from _parseShapeOptions; no `this`.
+JS9.Fabric._separateShapeOpts = function(opts, nopts, nparams){
+    let key, shape;
     for( key of Object.keys(opts) ){
 	// eslint-disable no-fallthrough
 	switch(key){
@@ -1514,70 +1585,7 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
 	}
 	// eslint-enable no-fallthrough
     }
-    // finalize some properties
-    nopts.stroke = nparams.color || nopts.stroke ||
-	           tagColor(nparams.tags, nparams.tagcolors, obj);
-    nopts.selectColor = nopts.stroke;
-    if( JS9.globalOpts.controlsMatchRegion === true ||
-	JS9.globalOpts.controlsMatchRegion === "corner" ){
-	nopts.cornerColor = nopts.stroke;
-    }
-    if( JS9.globalOpts.controlsMatchRegion === true ||
-	JS9.globalOpts.controlsMatchRegion === "border" ){
-	nopts.borderColor = nopts.stroke;
-    }
-    // deprecated
-    if( (nparams.changeable === undefined)  &&
-	(nparams.fixinplace !== undefined)  ){
-	nparams.changeable = !nparams.fixinplace;
-    }
-    // locked: opposite alias of changeable
-    if( (nparams.changeable === undefined)  &&
-	(nparams.locked !== undefined)      ){
-	nparams.changeable = !nparams.locked;
-    }
-    // changeable: short-hand for allowing objects to move and resize
-    if( nparams.changeable !== undefined || nparams.editing !== undefined ){
-	if( nparams.editing !== undefined ){
-	    tf = nparams.editing;
-	} else {
-	    tf = !nparams.changeable;
-	}
-	nopts.lockMovementX = tf;
-	nopts.lockMovementY = tf;
-	nopts.lockRotation = tf;
-	nopts.lockScalingX = tf;
-	nopts.lockScalingY = tf;
-	nopts.hasControls = !tf;
-	nopts.hasRotatingPoint = !tf;
-	nopts.hasBorders = !tf;
-    }
-    // movable means x and y movement
-    if( nparams.movable !== undefined ){
-	tf = !nparams.movable;
-	nopts.lockMovementX = tf;
-	nopts.lockMovementY = tf;
-    }
-    // resizable
-    if( nparams.resizable !== undefined ){
-	tf = nparams.resizable;
-	nopts.hasControls = tf;
-	nopts.hasBorders = tf;
-    }
-    // rotatable
-    if( nparams.rotatable !== undefined ){
-	tf = !nparams.rotatable;
-	if( nopts.lockRotation === undefined ){
-	    nopts.lockRotation = tf;
-	    nopts.hasRotatingPoint = !tf;
-	}
-    }
-    // editing affects visibility of shape
-    if( nparams.editing !== undefined ){
-	nopts.visible = !nparams.editing;
-    }
-    // return shape, opts and params
-    return {shape: shape, opts: nopts, params: nparams};
+    return shape;
 };
 
 // given an object full of keys, return an array of key names for export
