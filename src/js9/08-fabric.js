@@ -953,15 +953,8 @@ JS9.Fabric.activeShapeLayer = function(s){
     return rtn;
 };
 
-// process options, separating into fabric opts and params
-// call using image context
-JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
-    let i, j, tval1, tags, pos, cpos, len, zoom, owcssys, txeq, pt;
-    let shape, radinc, nrad, radius, tf, arr, parent;
-    const nopts = {}, nparams = {};
-    const YFUDGE = 1;
-    // get color for a given shape tag
-    const tagColor = (tags, tagcolors, obj) => {
+// get color for a given shape tag (extracted from _parseShapeOptions)
+JS9.Fabric._shapeTagColor = function(tags, tagcolors, obj){
 	let tkey, ctags, color;
 	tagcolors = tagcolors || {};
 	// look through the color keys for exact match
@@ -998,7 +991,15 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
 	color = color || (obj && obj.get("stroke")) ||
 	        tagcolors.defcolor || JS9.globalOpts.defcolor || "#000000";
 	return color;
-    };
+};
+
+// process options, separating into fabric opts and params
+// call using image context
+JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
+    let i, j, tval1, tags, pos, cpos, len, zoom, owcssys, txeq, pt;
+    let shape, radinc, nrad, radius, tf, arr, parent;
+    const nopts = {}, nparams = {};
+    const YFUDGE = 1;
     // opts is optional
     opts = opts || {};
     // remove means nothing else matters
@@ -1421,7 +1422,7 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
     shape = JS9.Fabric._separateShapeOpts(opts, nopts, nparams);
     // finalize some properties
     nopts.stroke = nparams.color || nopts.stroke ||
-	           tagColor(nparams.tags, nparams.tagcolors, obj);
+	           JS9.Fabric._shapeTagColor(nparams.tags, nparams.tagcolors, obj);
     nopts.selectColor = nopts.stroke;
     if( JS9.globalOpts.controlsMatchRegion === true ||
 	JS9.globalOpts.controlsMatchRegion === "corner" ){
