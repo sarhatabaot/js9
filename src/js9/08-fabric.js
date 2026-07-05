@@ -366,140 +366,8 @@ JS9.Fabric.newShapeLayer = function(layerName, layerOpts, divjq){
     if( dlayer.opts.selectable ){
 	dlayer.opts.canvas.selection = true;
     }
-    // are mouse callbacks defined in the opts object?
-    if( dlayer.opts.onmousedown || dlayer.opts.onmouseup  ||
-	dlayer.opts.onmousemove || dlayer.opts.tooltip    ||
-	dlayer.opts.onmouseover || dlayer.opts.onmouseout ){
-	dlayer.opts.evented = true;
-	if( dlayer.opts.onmousedown ){
-	    dlayer.canvas.on("mouse:down", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    let target = opts.target;
-		    // nb: target might be a polygon anchor => no params
-		    let params = target.params;
-		    // set click state but ignore unchangeable regions
-		    if( !params || (params && params.changeable !== false) ){
-			// on main window, set region click
-			if( dlayer.dtype === "main" ){
-			    dlayer.display.image.clickInRegion = true;
-			    dlayer.display.image.clickInLayer = layerName;
-			}
-			dlayer.opts.onmousedown.call(dlayer.canvas,
-						     dlayer.display.image,
-						     target.pub,
-						     opts.e, target);
-		    }
-		} else {
-		    // only allow fabric selection if we have special key down
-		    dlayer.canvas._selection = dlayer.canvas.selection;
-		    if( dlayer.canvas.selection ){
-			dlayer.canvas.selection = JS9.specialKey(opts.e);
-		    }
-		}
-	    });
-	} else {
-	    dlayer.canvas.on("mouse:down", (opts) => {
-		// only allow fabric selection if we have special key down
-		dlayer.canvas._selection = dlayer.canvas.selection;
-		if( dlayer.canvas.selection ){
-		    dlayer.canvas.selection = JS9.specialKey(opts.e);
-		}
-	    });
-	}
-	if( dlayer.opts.onmouseup ){
-	    dlayer.canvas.on("mouse:up", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmouseup.call(dlayer.canvas,
-					       dlayer.display.image,
-					       opts.target.pub,
-					       opts.e, opts.target);
-		}
-		// restore original selection state
-		dlayer.canvas.selection = dlayer.canvas._selection ||
-		                          dlayer.canvas.selection;
-	    });
-	} else {
-	    dlayer.canvas.on("mouse:up", () => {
-		// restore original selection state
-		dlayer.canvas.selection = dlayer.canvas._selection ||
-                                          dlayer.canvas.selection;
-	    });
-	}
-	if( dlayer.opts.onmousemove ){
-	    dlayer.canvas.on("mouse:move", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmousemove.call(dlayer.canvas,
-						 dlayer.display.image,
-						 opts.target.pub,
-						 opts.e, opts.target);
-		}
-	    });
-	}
-	if( dlayer.opts.onmouseover ){
-	    dlayer.canvas.on("mouse:over", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmouseover.call(dlayer.canvas,
-						 dlayer.display.image,
-						 opts.target.pub,
-						 opts.e, opts.target);
-		}
-	    });
-	}
-	if( dlayer.opts.onmouseout ){
-	    dlayer.canvas.on("mouse:out", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmouseout.call(dlayer.canvas,
-						dlayer.display.image,
-						opts.target.pub,
-						opts.e, opts.target);
-		}
-	    });
-	}
-	if( dlayer.opts.onmousedblclick ){
-	    dlayer.canvas.on("mouse:dblclick", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    dlayer.opts.onmousedblclick.call(dlayer.canvas,
-						     dlayer.display.image,
-						     opts.target.pub,
-						     opts.e, opts.target);
-		}
-	    });
-	}
-	if( dlayer.opts.tooltip ){
-	    dlayer.canvas.on("mouse:over", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    JS9.tooltip(opts.target.left+opts.target.width+2,
-				opts.target.top+opts.target.height+2,
-				dlayer.opts.tooltip,
-				dlayer.display.image,
-				opts.target.pub,
-				opts.e, opts.target);
-		}
-	    });
-	    dlayer.canvas.on("mouse:out", (opts) => {
-		if( dlayer.display.image && opts.target ){
-		    JS9.tooltip(opts.target.left, opts.target.top,
-				null,
-				dlayer.display.image,
-				opts.target.pub,
-				opts.e, opts.target);
-		}
-	    });
-	}
-    } else {
-	dlayer.canvas.on("mouse:down", (opts) => {
-	    // only allow fabric selection if we have special key down
-	    dlayer.canvas._selection = dlayer.canvas.selection;
-	    if( dlayer.canvas.selection ){
-		dlayer.canvas.selection = JS9.specialKey(opts.e);
-	    }
-	});
-	dlayer.canvas.on("mouse:up", () => {
-	    // restore original selection state
-	    dlayer.canvas.selection = dlayer.canvas._selection ||
-                                      dlayer.canvas.selection;
-	});
-    }
+    // bind user-supplied mouse callbacks (from layerOpts) to canvas events
+    JS9.Fabric._bindLayerMouseCallbacks(dlayer, layerName);
     // object modified
     dlayer.canvas.on("object:modified", (opts) => {
 	let o, i, olen, myWidth, myHeight;
@@ -657,6 +525,145 @@ JS9.Fabric.newShapeLayer = function(layerName, layerOpts, divjq){
 	}
     }
     return dlayer;
+};
+
+// bind a layer's user-supplied mouse callbacks (onmousedown/up/move/over/out/
+// dblclick + tooltip, from layerOpts) to its fabric canvas events. Extracted
+// from newShapeLayer; needs only the display-layer object and its name.
+JS9.Fabric._bindLayerMouseCallbacks = function(dlayer, layerName){
+    if( dlayer.opts.onmousedown || dlayer.opts.onmouseup  ||
+	dlayer.opts.onmousemove || dlayer.opts.tooltip    ||
+	dlayer.opts.onmouseover || dlayer.opts.onmouseout ){
+	dlayer.opts.evented = true;
+	if( dlayer.opts.onmousedown ){
+	    dlayer.canvas.on("mouse:down", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    let target = opts.target;
+		    // nb: target might be a polygon anchor => no params
+		    let params = target.params;
+		    // set click state but ignore unchangeable regions
+		    if( !params || (params && params.changeable !== false) ){
+			// on main window, set region click
+			if( dlayer.dtype === "main" ){
+			    dlayer.display.image.clickInRegion = true;
+			    dlayer.display.image.clickInLayer = layerName;
+			}
+			dlayer.opts.onmousedown.call(dlayer.canvas,
+						     dlayer.display.image,
+						     target.pub,
+						     opts.e, target);
+		    }
+		} else {
+		    // only allow fabric selection if we have special key down
+		    dlayer.canvas._selection = dlayer.canvas.selection;
+		    if( dlayer.canvas.selection ){
+			dlayer.canvas.selection = JS9.specialKey(opts.e);
+		    }
+		}
+	    });
+	} else {
+	    dlayer.canvas.on("mouse:down", (opts) => {
+		// only allow fabric selection if we have special key down
+		dlayer.canvas._selection = dlayer.canvas.selection;
+		if( dlayer.canvas.selection ){
+		    dlayer.canvas.selection = JS9.specialKey(opts.e);
+		}
+	    });
+	}
+	if( dlayer.opts.onmouseup ){
+	    dlayer.canvas.on("mouse:up", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmouseup.call(dlayer.canvas,
+					       dlayer.display.image,
+					       opts.target.pub,
+					       opts.e, opts.target);
+		}
+		// restore original selection state
+		dlayer.canvas.selection = dlayer.canvas._selection ||
+		                          dlayer.canvas.selection;
+	    });
+	} else {
+	    dlayer.canvas.on("mouse:up", () => {
+		// restore original selection state
+		dlayer.canvas.selection = dlayer.canvas._selection ||
+                                          dlayer.canvas.selection;
+	    });
+	}
+	if( dlayer.opts.onmousemove ){
+	    dlayer.canvas.on("mouse:move", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmousemove.call(dlayer.canvas,
+						 dlayer.display.image,
+						 opts.target.pub,
+						 opts.e, opts.target);
+		}
+	    });
+	}
+	if( dlayer.opts.onmouseover ){
+	    dlayer.canvas.on("mouse:over", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmouseover.call(dlayer.canvas,
+						 dlayer.display.image,
+						 opts.target.pub,
+						 opts.e, opts.target);
+		}
+	    });
+	}
+	if( dlayer.opts.onmouseout ){
+	    dlayer.canvas.on("mouse:out", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmouseout.call(dlayer.canvas,
+						dlayer.display.image,
+						opts.target.pub,
+						opts.e, opts.target);
+		}
+	    });
+	}
+	if( dlayer.opts.onmousedblclick ){
+	    dlayer.canvas.on("mouse:dblclick", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    dlayer.opts.onmousedblclick.call(dlayer.canvas,
+						     dlayer.display.image,
+						     opts.target.pub,
+						     opts.e, opts.target);
+		}
+	    });
+	}
+	if( dlayer.opts.tooltip ){
+	    dlayer.canvas.on("mouse:over", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    JS9.tooltip(opts.target.left+opts.target.width+2,
+				opts.target.top+opts.target.height+2,
+				dlayer.opts.tooltip,
+				dlayer.display.image,
+				opts.target.pub,
+				opts.e, opts.target);
+		}
+	    });
+	    dlayer.canvas.on("mouse:out", (opts) => {
+		if( dlayer.display.image && opts.target ){
+		    JS9.tooltip(opts.target.left, opts.target.top,
+				null,
+				dlayer.display.image,
+				opts.target.pub,
+				opts.e, opts.target);
+		}
+	    });
+	}
+    } else {
+	dlayer.canvas.on("mouse:down", (opts) => {
+	    // only allow fabric selection if we have special key down
+	    dlayer.canvas._selection = dlayer.canvas.selection;
+	    if( dlayer.canvas.selection ){
+		dlayer.canvas.selection = JS9.specialKey(opts.e);
+	    }
+	});
+	dlayer.canvas.on("mouse:up", () => {
+	    // restore original selection state
+	    dlayer.canvas.selection = dlayer.canvas._selection ||
+                                      dlayer.canvas.selection;
+	});
+    }
 };
 
 // ---------------------------------------------------------------------------
