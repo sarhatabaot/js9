@@ -14,7 +14,7 @@
 //
 // Usage: node scripts/build.mjs   (run before/with `npm run docs`; see build)
 
-import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir, copyFile, readdir } from "node:fs/promises";
 import { Buffer } from "node:buffer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -73,9 +73,10 @@ const PLUGINFILES = [
 ];
 
 // Core runtime library files copied verbatim into _site/ (loaded by the app at
-// runtime relative to INSTALLDIR, which resolves to _site/'s root).
+// runtime relative to INSTALLDIR, which resolves to _site/'s root). js9.js is
+// NOT here: it is assembled from src/js9/*.js by assembleCore() below.
 const RUNTIME = [
-  "js9.js", "js9.css", "js9prefs.js", "js9worker.js",
+  "js9.css", "js9prefs.js", "js9worker.js",
   "js9PostMessage.js", "astroem.js", "astroemw.js", "astroemw.wasm",
 ];
 
@@ -88,6 +89,17 @@ async function concatFiles(files) {
 async function writeOut(name, data) {
   await writeFile(out(name), data);
   console.log(`  _site/${name}`);
+}
+
+// Assemble the JS9 core library from its src/js9/*.js fragments. These are raw
+// byte slices of the former monolithic src/js9.js, concatenated in filename
+// order (the NN- prefix defines load order) -> byte-identical to the original
+// single file, so runtime behavior is unchanged.
+async function assembleCore() {
+  const dir = abs("src/js9");
+  const names = (await readdir(dir)).filter((f) => f.endsWith(".js")).sort();
+  const bufs = await Promise.all(names.map((n) => readFile(path.join(dir, n))));
+  return { buf: Buffer.concat(bufs), count: names.length };
 }
 
 // Port of the old mkallinone sed pipeline: inline a params/*.html dialog as one
@@ -135,8 +147,11 @@ async function main() {
     "plugin files in js9plugins.js: \n" + PLUGINFILES.join(" ") + "\n";
   await writeOut("js9support.txt", Buffer.from(txt));
 
-  // minified core + plugins (esbuild)
-  await minifyFile(abs("src/js9.js"), out("js9.min.js"));
+  // core library: assemble src/js9/*.js -> _site/js9.js, then minify it
+  const core = await assembleCore();
+  await writeOut("js9.js", core.buf);
+  console.log(`    (${core.count} fragments from src/js9/)`);
+  await minifyFile(out("js9.js"), out("js9.min.js"));
   console.log("  _site/js9.min.js");
   await minifyFile(out("js9plugins.js"), out("js9plugins.min.js"));
   console.log("  _site/js9plugins.min.js");
