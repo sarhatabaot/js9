@@ -122,3 +122,55 @@ test("display can be resized and reset", async ({ page }) => {
   await js9(page, (JS9) => JS9.ResizeDisplay("reset"));
   expect(await js9(page, (JS9) => JS9.GetImageData(false).width)).toBe(800);
 });
+
+test("display can be separated and gathered", async ({ page }) => {
+  await js9(page, (JS9) => JS9.SeparateDisplay());
+  await js9(page, (JS9) => JS9.GatherDisplay());
+  expect(await js9(page, (JS9) => JS9.GetImageData(false).width)).toBe(800);
+});
+
+test("flip set/get round-trips", async ({ page }) => {
+  await js9(page, (JS9) => JS9.SetFlip("x"));
+  expect(await js9(page, (JS9) => JS9.GetFlip())).toBe("x");
+});
+
+test("rot90 set/get round-trips", async ({ page }) => {
+  await js9(page, (JS9) => JS9.SetRot90(90));
+  expect(await js9(page, (JS9) => JS9.GetRot90())).toBe(90);
+});
+
+test("rotate set/get round-trips", async ({ page }) => {
+  await js9(page, (JS9) => JS9.SetRotate(45));
+  expect(await js9(page, (JS9) => JS9.GetRotate())).toBe(45);
+});
+
+test("GetValPos returns the pixel value at a position", async ({ page }) => {
+  // build/i800400.fits.gz is a ramp with pixel value == x*1000 + y.
+  const vp = await js9(page, (JS9) => JS9.GetValPos({ x: 400, y: 200 }, false));
+  expect(vp.val).toBe(400200);
+  expect(vp.ix).toBe(400);
+  expect(vp.iy).toBe(200);
+});
+
+test("a user colormap can be added and selected", async ({ page }) => {
+  await js9(page, (JS9) =>
+    JS9.AddColormap("mycm", [[0, 0], [0, 0]], [[0, 0], [1, 1]], [[0, 0], [1, 1]])
+  );
+  await js9(page, (JS9) => JS9.SetColormap("mycm"));
+  expect(await js9(page, (JS9) => JS9.GetColormap().colormap)).toBe("mycm");
+});
+
+test("GetParam/SetParam round-trip the colormap param", async ({ page }) => {
+  await js9(page, (JS9) => JS9.SetColormap("heat"));
+  expect(await js9(page, (JS9) => JS9.GetParam("colormap"))).toBe("heat");
+  await js9(page, (JS9) => JS9.SetParam("colormap", "cool"));
+  expect(await js9(page, (JS9) => JS9.GetColormap().colormap)).toBe("cool");
+});
+
+test("a shape layer can be hidden and shown", async ({ page }) => {
+  await js9(page, (JS9) => JS9.NewShapeLayer("lyr"));
+  await js9(page, (JS9) => JS9.AddShapes("lyr", "circle"));
+  await js9(page, (JS9) => JS9.ShowShapeLayer("lyr", false));
+  await js9(page, (JS9) => JS9.ShowShapeLayer("lyr", true));
+  expect(await js9(page, (JS9) => JS9.GetShapes("lyr").length)).toBe(1);
+});
