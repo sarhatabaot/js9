@@ -996,8 +996,8 @@ JS9.Fabric._shapeTagColor = function(tags, tagcolors, obj){
 // process options, separating into fabric opts and params
 // call using image context
 JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
-    let i, j, tval1, tags, pos, cpos, len, zoom, owcssys, txeq, pt;
-    let shape, radinc, nrad, radius, tf, arr, parent;
+    let i, tval1, tags, pos, zoom, owcssys, txeq;
+    let shape, tf, arr, parent;
     const nopts = {}, nparams = {};
     const YFUDGE = 1;
     // opts is optional
@@ -1182,7 +1182,82 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
     if( opts.strokeWidth === "" ){
 	opts.strokeWidth = JS9.Fabric.opts.strokeWidth;
     }
-    // shape-specific processing
+    // shape-specific size/scale/geometry processing
+    this._parseShapeSizeOpts(opts, nopts, nparams, obj, zoom);
+    // separate opts into fabric opts (nopts) and JS9 params (nparams)
+    shape = JS9.Fabric._separateShapeOpts(opts, nopts, nparams);
+    // finalize some properties
+    nopts.stroke = nparams.color || nopts.stroke ||
+	           JS9.Fabric._shapeTagColor(nparams.tags, nparams.tagcolors, obj);
+    nopts.selectColor = nopts.stroke;
+    if( JS9.globalOpts.controlsMatchRegion === true ||
+	JS9.globalOpts.controlsMatchRegion === "corner" ){
+	nopts.cornerColor = nopts.stroke;
+    }
+    if( JS9.globalOpts.controlsMatchRegion === true ||
+	JS9.globalOpts.controlsMatchRegion === "border" ){
+	nopts.borderColor = nopts.stroke;
+    }
+    // deprecated
+    if( (nparams.changeable === undefined)  &&
+	(nparams.fixinplace !== undefined)  ){
+	nparams.changeable = !nparams.fixinplace;
+    }
+    // locked: opposite alias of changeable
+    if( (nparams.changeable === undefined)  &&
+	(nparams.locked !== undefined)      ){
+	nparams.changeable = !nparams.locked;
+    }
+    // changeable: short-hand for allowing objects to move and resize
+    if( nparams.changeable !== undefined || nparams.editing !== undefined ){
+	if( nparams.editing !== undefined ){
+	    tf = nparams.editing;
+	} else {
+	    tf = !nparams.changeable;
+	}
+	nopts.lockMovementX = tf;
+	nopts.lockMovementY = tf;
+	nopts.lockRotation = tf;
+	nopts.lockScalingX = tf;
+	nopts.lockScalingY = tf;
+	nopts.hasControls = !tf;
+	nopts.hasRotatingPoint = !tf;
+	nopts.hasBorders = !tf;
+    }
+    // movable means x and y movement
+    if( nparams.movable !== undefined ){
+	tf = !nparams.movable;
+	nopts.lockMovementX = tf;
+	nopts.lockMovementY = tf;
+    }
+    // resizable
+    if( nparams.resizable !== undefined ){
+	tf = nparams.resizable;
+	nopts.hasControls = tf;
+	nopts.hasBorders = tf;
+    }
+    // rotatable
+    if( nparams.rotatable !== undefined ){
+	tf = !nparams.rotatable;
+	if( nopts.lockRotation === undefined ){
+	    nopts.lockRotation = tf;
+	    nopts.hasRotatingPoint = !tf;
+	}
+    }
+    // editing affects visibility of shape
+    if( nparams.editing !== undefined ){
+	nopts.visible = !nparams.editing;
+    }
+    // return shape, opts and params
+    return {shape: shape, opts: nopts, params: nparams};
+};
+
+// per-shape size/scale/geometry processing (annulus radii, box/circle/
+// ellipse sizing, point geometry, polygon/line points incl. WCS->display
+// conversion). Extracted from _parseShapeOptions; runs in image context
+// (registered in initGraphics).
+JS9.Fabric._parseShapeSizeOpts = function(opts, nopts, nparams, obj, zoom){
+    let i, j, radinc, nrad, radius, owcssys, txeq, arr, len, pt, cpos, pos;
     switch(opts.shape){
     case "annulus":
 	nparams.radii = [];
@@ -1418,72 +1493,6 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
     case "text":
 	break;
     }
-    // separate opts into fabric opts (nopts) and JS9 params (nparams)
-    shape = JS9.Fabric._separateShapeOpts(opts, nopts, nparams);
-    // finalize some properties
-    nopts.stroke = nparams.color || nopts.stroke ||
-	           JS9.Fabric._shapeTagColor(nparams.tags, nparams.tagcolors, obj);
-    nopts.selectColor = nopts.stroke;
-    if( JS9.globalOpts.controlsMatchRegion === true ||
-	JS9.globalOpts.controlsMatchRegion === "corner" ){
-	nopts.cornerColor = nopts.stroke;
-    }
-    if( JS9.globalOpts.controlsMatchRegion === true ||
-	JS9.globalOpts.controlsMatchRegion === "border" ){
-	nopts.borderColor = nopts.stroke;
-    }
-    // deprecated
-    if( (nparams.changeable === undefined)  &&
-	(nparams.fixinplace !== undefined)  ){
-	nparams.changeable = !nparams.fixinplace;
-    }
-    // locked: opposite alias of changeable
-    if( (nparams.changeable === undefined)  &&
-	(nparams.locked !== undefined)      ){
-	nparams.changeable = !nparams.locked;
-    }
-    // changeable: short-hand for allowing objects to move and resize
-    if( nparams.changeable !== undefined || nparams.editing !== undefined ){
-	if( nparams.editing !== undefined ){
-	    tf = nparams.editing;
-	} else {
-	    tf = !nparams.changeable;
-	}
-	nopts.lockMovementX = tf;
-	nopts.lockMovementY = tf;
-	nopts.lockRotation = tf;
-	nopts.lockScalingX = tf;
-	nopts.lockScalingY = tf;
-	nopts.hasControls = !tf;
-	nopts.hasRotatingPoint = !tf;
-	nopts.hasBorders = !tf;
-    }
-    // movable means x and y movement
-    if( nparams.movable !== undefined ){
-	tf = !nparams.movable;
-	nopts.lockMovementX = tf;
-	nopts.lockMovementY = tf;
-    }
-    // resizable
-    if( nparams.resizable !== undefined ){
-	tf = nparams.resizable;
-	nopts.hasControls = tf;
-	nopts.hasBorders = tf;
-    }
-    // rotatable
-    if( nparams.rotatable !== undefined ){
-	tf = !nparams.rotatable;
-	if( nopts.lockRotation === undefined ){
-	    nopts.lockRotation = tf;
-	    nopts.hasRotatingPoint = !tf;
-	}
-    }
-    // editing affects visibility of shape
-    if( nparams.editing !== undefined ){
-	nopts.visible = !nparams.editing;
-    }
-    // return shape, opts and params
-    return {shape: shape, opts: nopts, params: nparams};
 };
 
 // route a shape's opts into fabric opts (nopts) vs JS9 params (nparams),
@@ -4569,6 +4578,7 @@ JS9.Fabric.initGraphics = function(){
     JS9.Image.prototype._updateShape = JS9.Fabric._updateShape;
     JS9.Image.prototype._parseShapes = JS9.Fabric._parseShapes;
     JS9.Image.prototype._parseShapeOptions = JS9.Fabric._parseShapeOptions;
+    JS9.Image.prototype._parseShapeSizeOpts = JS9.Fabric._parseShapeSizeOpts;
     JS9.Image.prototype._exportShapeOptions = JS9.Fabric._exportShapeOptions;
     JS9.Image.prototype._handleChildText = JS9.Fabric._handleChildText;
     JS9.Image.prototype._createShapeObject = JS9.Fabric._createShapeObject;
