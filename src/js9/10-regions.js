@@ -129,6 +129,7 @@ JS9.Regions.init = function(layerName){
     JS9.Image.prototype.parseRegions = JS9.Regions.parseRegions;
     JS9.Image.prototype.saveRegions = JS9.Regions.saveRegions;
     JS9.Image.prototype.listRegions = JS9.Regions.listRegions;
+    JS9.Image.prototype._getRegionExports = JS9.Regions._getRegionExports;
     JS9.Image.prototype.copyRegions = JS9.Regions.copyRegions;
     JS9.Image.prototype.changeRegionTags = JS9.Regions.changeRegionTags;
     JS9.Image.prototype.toggleRegionTags = JS9.Regions.toggleRegionTags;
@@ -1814,119 +1815,6 @@ JS9.Regions.listRegions = function(which, opts, layerName){
     const sepstr="; ";
     const tagcolors = [];
     const topts = {includeObj: true};
-    const getExports = (obj, region) => {
-	let i, s, key, child, ra, dec;
-	const nexports = {};
-	const params = obj.params;
-	const children = params.children;
-	const exports = params.exports;
-	for(i=0; i<exports.length; i++){
-	    // property name
-	    key = exports[i];
-	    // skip text keys (except text regions), get them from the children
-	    if( (key === "text" && obj.type !== "text") ||
-		(key === "textOpts") ){
-		continue;
-	    }
-	    // ignore empty stroke dash array
-	    if( key === "strokeDashArray" && obj.strokeDashArray ){
-		s = obj.strokeDashArray.join("");
-		if( (s === "") || s.match(/NaN/) ){
-		    continue;
-		}
-	    }
-	    // skip id when saving to a file
-	    if( key === "id" && opts.file ){
-		continue;
-	    }
-	    // skip wcsconfig when saving to a file
-	    if( key === "wcsconfig" && opts.file ){
-		continue;
-	    }
-	    // sometimes skip data when saving to a file
-	    if( key === "data" && typeof params.data === "object" &&
-		params.data.doexport === false && opts.file ){
-		continue;
-	    }
-	    // strokeWidth can be changed as part of zooming,
-	    // so use the original value if needed
-	    if( (key === "strokeWidth") && params.sw1 ){
-		nexports[key] = params.sw1;
-		continue;
-	    }
-	    // looks for its value
-	    if( obj[key] !== undefined ){
-		nexports[key] = obj[key];
-	    } else if( params[key] !== undefined ){
-		nexports[key] = params[key];
-	    } else if( region && region[key] !== undefined ){
-		nexports[key] = region[key];
-	    }
-	}
-	// handle text child properties specially
-	// for now, just output the first one (cf. updateShape)
-	if( (children.length > 0) && (children[0].obj.text) ){
-	    child = children[0].obj;
-	    // create a text child
-	    nexports.text = child.text;
-	    // get options for text child but ...
-	    nexports.textOpts = getExports(child);
-	    // try to minimize exported properties
-	    if( obj.angle !== child.angle ){
-		// child has an explicit angle different from parent
-		nexports.textOpts.angle = -child.angle;
-		if( (obj.params.shape === "circle")  ||
-		    (obj.params.shape === "annulus") ){
-		    child.params.hasTextOpts = true;
-		}
-	    } else if( child.angle !== 0 ){
-		// parent is circle/annulus and child has an angle
-		if( (obj.params.shape === "circle")  ||
-		    (obj.params.shape === "annulus") ){
-		    nexports.textOpts.angle = -child.angle;
-		    child.params.hasTextOpts = true;
-		}
-	    }
-	    if( child.params.parent.moved || child.params.hasTextOpts ){
-		// wcs, then physical coords are preferred ...
-		if( child.pub.ra && child.pub.dec ){
-		    // convert child ra, dec to target wcs, if necessary
-		    if( owcssys && wcssys && owcssys !== wcssys ){
-			s = this.wcs2wcs(owcssys, wcssys,
-					 child.pub.ra, child.pub.dec);
-			s = s.trim().split(/\s+/);
-			ra = JS9.saostrtod(s[0]);
-			if( JS9.isHMS(wcssys) ){
-			    ra *= 15.0;
-			}
-			dec = JS9.saostrtod(s[1]);
-		    } else {
-			ra = child.pub.ra;
-			dec = child.pub.dec;
-		    }
-		    nexports.textOpts.ra  = ra;
-		    nexports.textOpts.dec = dec;
-		} else if( child.pub.lcs ){
-		    nexports.textOpts.px = child.pub.lcs.x;
-		    nexports.textOpts.py = child.pub.lcs.y;
-		} else {
-		    // ... image coords will are only good for this image
-		    nexports.textOpts.x = child.pub.x;
-		    nexports.textOpts.y = child.pub.y;
-		}
-	    }
-	    if( nexports.textOpts.color === obj.stroke ){
-		delete nexports.textOpts.color;
-	    }
-	    if( nexports.textOpts.text ){
-		delete nexports.textOpts.text;
-	    }
-	    if( !Object.keys(nexports.textOpts).length ){
-		delete nexports.textOpts;
-	    }
-	}
-	return nexports;
-    };
     // opts is optional
     opts = opts || {};
     // opts can be an object or json
@@ -2101,7 +1989,7 @@ JS9.Regions.listRegions = function(which, opts, layerName){
 	    iestr = "";
 	}
 	// add exported properties
-	exports = getExports(obj, region);
+	exports = this._getRegionExports(obj, region, owcssys, wcssys, opts);
 	// add id, if necessary
 	if( opts.saveid ){
 	    exports.id = region.id;
@@ -2192,6 +2080,123 @@ JS9.Regions.listRegions = function(which, opts, layerName){
     return regstr;
 };
 
+// build the export object (the properties to serialize/save) for a region.
+// Extracted from listRegions; recurses for a region's text child. owcssys/
+// wcssys/opts come from the listRegions call. call using image context
+JS9.Regions._getRegionExports = function(obj, region, owcssys, wcssys, opts){
+	let i, s, key, child, ra, dec;
+	const nexports = {};
+	const params = obj.params;
+	const children = params.children;
+	const exports = params.exports;
+	for(i=0; i<exports.length; i++){
+	    // property name
+	    key = exports[i];
+	    // skip text keys (except text regions), get them from the children
+	    if( (key === "text" && obj.type !== "text") ||
+		(key === "textOpts") ){
+		continue;
+	    }
+	    // ignore empty stroke dash array
+	    if( key === "strokeDashArray" && obj.strokeDashArray ){
+		s = obj.strokeDashArray.join("");
+		if( (s === "") || s.match(/NaN/) ){
+		    continue;
+		}
+	    }
+	    // skip id when saving to a file
+	    if( key === "id" && opts.file ){
+		continue;
+	    }
+	    // skip wcsconfig when saving to a file
+	    if( key === "wcsconfig" && opts.file ){
+		continue;
+	    }
+	    // sometimes skip data when saving to a file
+	    if( key === "data" && typeof params.data === "object" &&
+		params.data.doexport === false && opts.file ){
+		continue;
+	    }
+	    // strokeWidth can be changed as part of zooming,
+	    // so use the original value if needed
+	    if( (key === "strokeWidth") && params.sw1 ){
+		nexports[key] = params.sw1;
+		continue;
+	    }
+	    // looks for its value
+	    if( obj[key] !== undefined ){
+		nexports[key] = obj[key];
+	    } else if( params[key] !== undefined ){
+		nexports[key] = params[key];
+	    } else if( region && region[key] !== undefined ){
+		nexports[key] = region[key];
+	    }
+	}
+	// handle text child properties specially
+	// for now, just output the first one (cf. updateShape)
+	if( (children.length > 0) && (children[0].obj.text) ){
+	    child = children[0].obj;
+	    // create a text child
+	    nexports.text = child.text;
+	    // get options for text child but ...
+	    nexports.textOpts = this._getRegionExports(child, undefined, owcssys, wcssys, opts);
+	    // try to minimize exported properties
+	    if( obj.angle !== child.angle ){
+		// child has an explicit angle different from parent
+		nexports.textOpts.angle = -child.angle;
+		if( (obj.params.shape === "circle")  ||
+		    (obj.params.shape === "annulus") ){
+		    child.params.hasTextOpts = true;
+		}
+	    } else if( child.angle !== 0 ){
+		// parent is circle/annulus and child has an angle
+		if( (obj.params.shape === "circle")  ||
+		    (obj.params.shape === "annulus") ){
+		    nexports.textOpts.angle = -child.angle;
+		    child.params.hasTextOpts = true;
+		}
+	    }
+	    if( child.params.parent.moved || child.params.hasTextOpts ){
+		// wcs, then physical coords are preferred ...
+		if( child.pub.ra && child.pub.dec ){
+		    // convert child ra, dec to target wcs, if necessary
+		    if( owcssys && wcssys && owcssys !== wcssys ){
+			s = this.wcs2wcs(owcssys, wcssys,
+					 child.pub.ra, child.pub.dec);
+			s = s.trim().split(/\s+/);
+			ra = JS9.saostrtod(s[0]);
+			if( JS9.isHMS(wcssys) ){
+			    ra *= 15.0;
+			}
+			dec = JS9.saostrtod(s[1]);
+		    } else {
+			ra = child.pub.ra;
+			dec = child.pub.dec;
+		    }
+		    nexports.textOpts.ra  = ra;
+		    nexports.textOpts.dec = dec;
+		} else if( child.pub.lcs ){
+		    nexports.textOpts.px = child.pub.lcs.x;
+		    nexports.textOpts.py = child.pub.lcs.y;
+		} else {
+		    // ... image coords will are only good for this image
+		    nexports.textOpts.x = child.pub.x;
+		    nexports.textOpts.y = child.pub.y;
+		}
+	    }
+	    if( nexports.textOpts.color === obj.stroke ){
+		delete nexports.textOpts.color;
+	    }
+	    if( nexports.textOpts.text ){
+		delete nexports.textOpts.text;
+	    }
+	    if( !Object.keys(nexports.textOpts).length ){
+		delete nexports.textOpts;
+	    }
+	}
+	return nexports;
+};
+
 // copy one or more regions to another image
 // call using image context
 JS9.Regions.copyRegions = function(to, which){
@@ -2218,74 +2223,6 @@ JS9.Regions.parseRegions = function(s, opts){
     const tf = (s) => {
 	if( s === "0" || s.toLowerCase() === "false" ){return false;}
 	return true;
-    };
-    // ds9 compatibility: get properties from comment string
-    const ds9properties = (s) => {
-	let xarr, key, key2, val, nobj;
-	const xobj = {};
-	const rexp = /([a-zA-Z][a-zA-Z0-9_]*)\s*=\s*(\d+(\s*\d+)*|[^ '"{]+|['"{][^'"}]*['"}])/g;
-	const ds9opts = {
-	    color(v) {return {color: v};},
-	    dash(v) {if(v){return {strokeDashArray: [3,1]};}},
-	    dashlist(v) {
-		let i, arr;
-		if( v ){
-		    arr = v.split(" ");
-		    for(i=0; i<arr.length; i++){
-			arr[i] = parseFloat(arr[i]);
-		    }
-		    return {strokeDashArray: arr};
-		}
-	    },
-	    delete(v) {return {removable: tf(v)};},
-	    edit(v) {return {selectable: tf(v)};},
-	    fixed(v) {return {zoomable: !tf(v)};},
-	    font(v) {
-		const obj = {};
-		const arr = v.split(" ");
-		const len = arr.length;
-		if( len >= 1 ){ obj.fontFamily = arr[0]; }
-		if( len >= 2 ){ obj.fontSize = parseFloat(arr[1]); }
-		if( len >= 3 ){ obj.fontStyle  = arr[2]; }
-		if( len >= 4 ){ obj.fontWeight = arr[3]; }
-		return obj;
-	    },
-	    highlite(v) {return {hasControls: tf(v), hasBorders: tf(v), hasRotatingPoint: tf(v)};},
-	    move(v) {return {movable: tf(v)};},
-	    rotate(v) {return {rotatable: tf(v)};},
-	    resize(v) {return {resizable: tf(v)};},
-	    changeable(v) {return {changeable: tf(v)};},
-	    select(v) {return {selectable: tf(v)};},
-	    text(v) {return {text: v};},
-	    tag(v) {return {tags: v};},
-	    width(v) {return {strokeWidth: parseFloat(v)};}
-	};
-	// opts is optional
-	opts = opts || {};
-	// loop through DS9 region properties, converting to js9 props
-	while( (xarr = rexp.exec(s)) !== null ){
-	    key = xarr[1].toLowerCase();
-	    val = xarr[2].replace(/^['"{]|['"}]$/g, "");
-	    if( {}.hasOwnProperty.call(ds9opts, key) &&
-		typeof ds9opts[key] === "function"   ){
-		nobj = ds9opts[key](val) || {};
-		for( key2 of Object.keys(nobj) ){
-		    if( key2 === "tags" && {}.hasOwnProperty.call(xobj, key2) ){
-			xobj[key2] += `,${nobj[key2]}`;
-		    } else {
-			xobj[key2] = nobj[key2];
-		    }
-		}
-	    } else {
-		xobj[key] = val;
-	    }
-	}
-	// save the remaining comment
-	s = s.replace(rexp, "");
-	if( s ){
-	    xobj._comment = s.trim();
-	}
-	return xobj;
     };
     // parse region line into cmd (shape or wcs), args, opts, comment
     const regparse1 = (s) => {
@@ -2321,7 +2258,7 @@ JS9.Regions.parseRegions = function(s, opts){
 	// look for comments
 	tobj.comment = t[1];
 	if( tobj.comment ){
-	    ds9props = ds9properties(tobj.comment.trim());
+	    ds9props = JS9.Regions._parseDS9Properties(tobj.comment.trim(), tf);
 	    if( ds9props._comment !== undefined ){
 		tobj.comment = ds9props._comment;
 		delete ds9props._comment;
@@ -2583,6 +2520,75 @@ JS9.Regions.parseRegions = function(s, opts){
     JS9.globalOpts.xeqPlugins = txeq;
     // return the generated object
     return regions;
+};
+
+// parse a DS9 region comment string into JS9 shape properties (color, dash,
+// font, edit/move/rotate/tag flags, ...). Extracted from parseRegions; `tf`
+// converts "0"/"false" -> false, else true. call using image context
+JS9.Regions._parseDS9Properties = function(s, tf){
+	let xarr, key, key2, val, nobj;
+	const xobj = {};
+	const rexp = /([a-zA-Z][a-zA-Z0-9_]*)\s*=\s*(\d+(\s*\d+)*|[^ '"{]+|['"{][^'"}]*['"}])/g;
+	const ds9opts = {
+	    color(v) {return {color: v};},
+	    dash(v) {if(v){return {strokeDashArray: [3,1]};}},
+	    dashlist(v) {
+		let i, arr;
+		if( v ){
+		    arr = v.split(" ");
+		    for(i=0; i<arr.length; i++){
+			arr[i] = parseFloat(arr[i]);
+		    }
+		    return {strokeDashArray: arr};
+		}
+	    },
+	    delete(v) {return {removable: tf(v)};},
+	    edit(v) {return {selectable: tf(v)};},
+	    fixed(v) {return {zoomable: !tf(v)};},
+	    font(v) {
+		const obj = {};
+		const arr = v.split(" ");
+		const len = arr.length;
+		if( len >= 1 ){ obj.fontFamily = arr[0]; }
+		if( len >= 2 ){ obj.fontSize = parseFloat(arr[1]); }
+		if( len >= 3 ){ obj.fontStyle  = arr[2]; }
+		if( len >= 4 ){ obj.fontWeight = arr[3]; }
+		return obj;
+	    },
+	    highlite(v) {return {hasControls: tf(v), hasBorders: tf(v), hasRotatingPoint: tf(v)};},
+	    move(v) {return {movable: tf(v)};},
+	    rotate(v) {return {rotatable: tf(v)};},
+	    resize(v) {return {resizable: tf(v)};},
+	    changeable(v) {return {changeable: tf(v)};},
+	    select(v) {return {selectable: tf(v)};},
+	    text(v) {return {text: v};},
+	    tag(v) {return {tags: v};},
+	    width(v) {return {strokeWidth: parseFloat(v)};}
+	};
+	// loop through DS9 region properties, converting to js9 props
+	while( (xarr = rexp.exec(s)) !== null ){
+	    key = xarr[1].toLowerCase();
+	    val = xarr[2].replace(/^['"{]|['"}]$/g, "");
+	    if( {}.hasOwnProperty.call(ds9opts, key) &&
+		typeof ds9opts[key] === "function"   ){
+		nobj = ds9opts[key](val) || {};
+		for( key2 of Object.keys(nobj) ){
+		    if( key2 === "tags" && {}.hasOwnProperty.call(xobj, key2) ){
+			xobj[key2] += `,${nobj[key2]}`;
+		    } else {
+			xobj[key2] = nobj[key2];
+		    }
+		}
+	    } else {
+		xobj[key] = val;
+	    }
+	}
+	// save the remaining comment
+	s = s.replace(rexp, "");
+	if( s ){
+	    xobj._comment = s.trim();
+	}
+	return xobj;
 };
 
 // save regions to a file
