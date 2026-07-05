@@ -138,6 +138,14 @@ permalink: index.html
     var err = {};
     var plot, pobj;
     var running = false;
+    // TODO (revisit later): this homepage analysis demo (the counts / radial /
+    // spectrum / lcurve tabs below) was built for Cassiopeia A X-ray *event*
+    // data. It now preloads the bundled synthetic example (data/example.fits.gz),
+    // which is a plain 2-D image with no energy/time columns, so spectrum and
+    // lcurve won't produce meaningful results (and server-side analysis needs
+    // the helper, which the static site doesn't run). counts/radial are
+    // client-side and work. Consider simplifying this hero to a plain image +
+    // client-side analysis for the static, helper-less deployment.
     var objs = [
       {scale: "log", colormap: "viridis", contrast: 3.26, bias: 0.66},
       {scale: "log", colormap: "magma", contrast: 2.9, bias: 0.72},
@@ -328,7 +336,6 @@ permalink: index.html
 	<li> configure and control JS9 via HTML elements in a web page
 	<li> control JS9 <a href='help/extmsg.html' target='_blank'>externally</a>, from a command shell or Python
 	<li> print images, save images and sessions, multiple displays, ...
-	<li> simplified <a href="https://github.com/ericmandel/js9app" target="_blank" rel="noopener noreferrer">desktop app</a> for Mac
       </ul>
       <p>
       Drag and drop a FITS astronomical data file onto the display and JS9
@@ -537,16 +544,7 @@ permalink: index.html
     git pull
       </pre>
       <p>
-      For Mac (Catalina) and Linux (Ubuntu 20.04) users,
-      <b>pre-built desktop apps</b> are available:
-      <ul>
-      <li><a href="downloads/js9-darwin-x64-3.8.zip">js9 v3.8 zip (macOS)</a>
-      <li><a href="downloads/js9-linux-x64-3.8.zip">js9 v3.8 zip (Linux)</a>
-      </ul>
-      Pre-built apps lack some configurability, but their ease of
-      installation and use will make most users happy.
-      <p>
-      In addition, the <b>pyjs9 Python interface</b> is available on GitHub:
+      The <b>pyjs9 Python interface</b> is available on GitHub:
       <ul>
       <li> <a href="https://github.com/ericmandel/pyjs9" target="_blank" rel="noopener noreferrer">pyjs9 on GitHub</a>
       </ul>
