@@ -169,8 +169,8 @@ permalink: index.html
         js9tabs.init();
         idx = Math.floor(Math.random() * objs.length);
         obj = $.extend(true, {}, objs[idx]);
-        obj.parentFile = "data/fits/casa.fits";
-        JS9.Preload("data/fits/casa.fits.gz", obj);
+        obj.parentFile = "data/example.fits";
+        JS9.Preload("data/example.fits.gz", obj);
     }
     // run analysis on current image, defining a function to display results
     function runMyAnalysis(im, xreg){
