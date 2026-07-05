@@ -22,7 +22,7 @@ js9helper.pc
 .DS_Store
 a.out.dSYM
 /Makefile
-/src/Makefile
+/native/Makefile
 /astroem/jsfitsio/Makefile
 /astroem/wrappers/Makefile
 /data
@@ -31,3 +31,18 @@ a.out.dSYM
 /old
 /tmp
 /talks
+
+# Node dependencies — installed via `npm install`, not committed.
+# (package.json still lists bundledDependencies; npm bundles those at publish
+#  time from node_modules, so untracking here does not affect `npm publish`.)
+node_modules/
+
+# Playwright test artifacts
+/test-results/
+/playwright-report/
+
+# Generated deployable site — `npm run build` assembles the full static app
+# (bundles, minified core, all-in-one, runtime files, docs, demos, assets) into
+# _site/ from docs/ + the root library sources. Built by the `prepare` hook on
+# `npm install`; served with `npm run serve`; deployed via a GitHub Action.
+/_site/

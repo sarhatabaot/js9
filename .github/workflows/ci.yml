@@ -1,0 +1,49 @@
+name: CI
+
+# Phase 1 safety net for the modernization effort: syntax-check the shipped JS
+# and run a headless smoke test that loads a FITS image in Chromium.
+# Baseline captured in BASELINE.md. Node 22 = current, Node 24 = forward target (LTS).
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    name: smoke (node ${{ matrix.node }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the site (concat + esbuild + all-in-one + docs -> _site/)
+        # also runs via the package.json "prepare" hook on npm ci; kept explicit.
+        # The built site (_site/) is not committed.
+        run: npm run build
+
+      - name: Syntax-check JS (root sources + generated bundles in _site/)
+        run: |
+          for f in js9.js js9Helper.js js9Msg.js js9Regions.js js9worker.js astroem.js \
+                   _site/js9.min.js _site/js9-allinone.js _site/js9support.min.js \
+                   _site/js9plugins.js; do
+            node --check "$f" && echo "OK   $f"
+          done
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests (source + minified + all-in-one bundles)
+        run: npm test

@@ -3,7 +3,7 @@
 
 # defaults
 DEFPREFS="js9Prefs.json"
-HELPER="./js9Helper.js"
+HELPER="./server/js9Helper.js"
 if [ -d $HOME/logs ]; then
   LOG="$HOME/logs/js9node.log"
 else

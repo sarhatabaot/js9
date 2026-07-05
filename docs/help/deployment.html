@@ -1,0 +1,87 @@
+---
+title: "JS9 Deployment Modes: Client-side vs. Helper"
+---
+<center><h3>Deployment Modes: Client-side vs. Server Helper</h3></center>
+
+<p>
+JS9 can run in two different modes, and you choose which one by a single
+preference setting. Both modes display and analyze FITS images; they differ
+only in <b>where</b> the heavier, optional work happens.
+</p>
+
+<h3>The short version</h3>
+<ul>
+<li> <b>Client-side (static)</b> — everything runs in the browser. Deploy the
+     files to any static host (GitHub Pages, S3, a plain web server, even a
+     <code>file://</code> path with a local server). No back end. This is the
+     default.
+<li> <b>Server helper</b> — a small Node.js program (<code>js9Helper.js</code>)
+     runs alongside the static files and adds server-side capabilities.
+</ul>
+
+<h3>How the analysis actually works</h3>
+<p>
+JS9's FITS engine is <b>astroem</b> — CFITSIO, WCS and related libraries
+compiled to WebAssembly. It runs <i>inside the browser</i>. That means the
+core of JS9, including a large amount of analysis, needs no server at all:
+</p>
+<ul>
+<li> load and display FITS (images, tables, cubes, multi-extension files)
+<li> colormaps, scaling, zoom/pan, RGB, blending
+<li> WCS: pixel &harr; world coordinates, changing WCS system/units
+<li> regions, including the boolean selection parser and grouping
+<li> region statistics, counts in regions, radial profiles, histograms,
+     encircled energy, pixel tables, projections (the <b>imexam</b> plugins)
+<li> image arithmetic, gaussian blur, filtering, binning, reprojection, rotation
+</ul>
+
+<h3>What the helper adds (and how to live without it)</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+<tr><th align="left">Capability</th><th align="left">Helper</th><th align="left">Static alternative</th></tr>
+<tr><td>Server-side analysis tasks (run external programs, e.g. funtools)</td>
+    <td>yes</td>
+    <td>write <a href="localtasks.html">client-side "local" tasks</a> in JavaScript</td></tr>
+<tr><td>Proxy load of remote FITS from a non-CORS server</td>
+    <td>yes</td>
+    <td>host the FITS yourself, or use a CORS-enabled archive (direct URL loads work)</td></tr>
+<tr><td>Saving files / per-user work directories on the server</td>
+    <td>yes</td>
+    <td>browser downloads</td></tr>
+</table>
+
+<h3>Choosing a mode</h3>
+<p>
+The mode is set by <code>globalOpts.helperType</code> in
+<code>js9prefs.js</code> (loaded by your web page):
+</p>
+<pre>
+  // client-side / static (default): no back end
+  "helperType": "none",
+  "loadProxy":  false,
+
+  // server helper: adds server-side analysis + proxy
+  "helperType": "nodejs",
+  "loadProxy":  true,
+</pre>
+<p>
+See <a href="preferences.html">Preferences</a> for the full list of options and
+<a href="serverside.html">Server-side Analysis</a> and
+<a href="helper.html">The JS9 Helper</a> for the helper details.
+</p>
+
+<h3>Running each mode</h3>
+<ul>
+<li> <b>Static</b>: build the site and serve the output directory —
+     <code>npm run serve</code> for local preview, or publish the built
+     <code>_site/</code> directory to any static host.
+<li> <b>Helper</b>: set <code>helperType: "nodejs"</code>, then start the Node
+     helper (<code>node server/js9Helper.js</code>) so the page can connect to
+     it on its configured port.
+</ul>
+
+<p>
+If you deploy the static files but leave <code>helperType: "nodejs"</code>, the
+page will try (and fail) to reach a helper that isn't there — harmless, but it
+logs a connection error. Set <code>helperType: "none"</code> for a pure static
+site.
+</p>

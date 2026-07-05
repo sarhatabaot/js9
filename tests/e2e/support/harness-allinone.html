@@ -1,0 +1,23 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' http://localhost:* ws://localhost:* 'unsafe-eval'; connect-src 'self' http://localhost:* ws://localhost:*; img-src 'self' data:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link type="text/css" rel="stylesheet" href="/_site/js9-allinone.css">
+  <!-- helperType "none"; installDir points at the repo root so JS9 can find
+       support files (worker etc.). The all-in-one bundle already contains the
+       pure-JS astroem FITS module, so no wasm is fetched. -->
+  <script type="text/javascript">
+    var JS9Prefs = { globalOpts: { helperType: "none", debug: 0, installDir: "/_site/" } };
+  </script>
+  <script type="text/javascript" src="/_site/js9-allinone.js"></script>
+  <title>JS9 e2e harness (all-in-one)</title>
+</head>
+<body>
+  <div class="JS9Menubar" id="JS9Menubar"></div>
+  <div class="JS9" id="JS9"></div>
+  <div class="JS9Statusbar" id="JS9Statusbar"></div>
+</body>
+</html>
