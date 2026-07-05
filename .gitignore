@@ -22,7 +22,7 @@ js9helper.pc
 .DS_Store
 a.out.dSYM
 /Makefile
-/src/Makefile
+/native/Makefile
 /astroem/jsfitsio/Makefile
 /astroem/wrappers/Makefile
 /data

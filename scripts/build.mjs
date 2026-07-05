@@ -4,7 +4,8 @@
 // and copies the core runtime library files.
 //
 // Inputs:  docs/assets/{js,css,params} (vendored libs + dialogs), plugins/
-//          (plugin sources), and the root library sources (js9.js, js9.css, ...)
+//          (plugin sources), src/ (the JS9 library: js9.js, js9.css, ...), and
+//          server/js9Prefs.json (site config)
 // Outputs (all in _site/):
 //   js9support.min.js / js9support.js / js9support.css / js9support.txt
 //   js9plugins.js / js9plugins.min.js / js9.min.js
@@ -74,8 +75,8 @@ const PLUGINFILES = [
 // Core runtime library files copied verbatim into _site/ (loaded by the app at
 // runtime relative to INSTALLDIR, which resolves to _site/'s root).
 const RUNTIME = [
-  "js9.js", "js9.css", "js9prefs.js", "js9Prefs.json", "js9worker.js",
-  "astroem.js", "astroemw.js", "astroemw.wasm",
+  "js9.js", "js9.css", "js9prefs.js", "js9worker.js",
+  "js9PostMessage.js", "astroem.js", "astroemw.js", "astroemw.wasm",
 ];
 
 // --- helpers ---------------------------------------------------------------
@@ -135,7 +136,7 @@ async function main() {
   await writeOut("js9support.txt", Buffer.from(txt));
 
   // minified core + plugins (esbuild)
-  await minifyFile(abs("js9.js"), out("js9.min.js"));
+  await minifyFile(abs("src/js9.js"), out("js9.min.js"));
   console.log("  _site/js9.min.js");
   await minifyFile(out("js9plugins.js"), out("js9plugins.min.js"));
   console.log("  _site/js9plugins.min.js");
@@ -146,7 +147,7 @@ async function main() {
     await readFile(out("js9support.min.js")),
     await readFile(out("js9.min.js")),
     await readFile(out("js9plugins.js")),
-    await readFile(abs("astroem.js")),
+    await readFile(abs("src/astroem.js")),
   ]);
   let js = Buffer.concat([Buffer.from(banner), bundle]).toString("binary");
   js += "JS9.allinone = {};\n";
@@ -164,13 +165,15 @@ async function main() {
   // all-in-one CSS
   await writeOut("js9-allinone.css", Buffer.concat([
     Buffer.from(banner),
-    await concatFiles([...CSSFILES, ...PLCSSFILES, "js9.css"]),
+    await concatFiles([...CSSFILES, ...PLCSSFILES, "src/js9.css"]),
     Buffer.from(sunIconCss + "\n"),
   ]));
 
-  // copy core runtime files into _site/
-  for (const f of RUNTIME) await copyFile(abs(f), out(f));
-  console.log(`  _site/ <- ${RUNTIME.length} runtime files`);
+  // copy core runtime files (from src/) into _site/
+  for (const f of RUNTIME) await copyFile(abs(`src/${f}`), out(f));
+  // the site prefs/config lives with the helper (server/); the browser loads it too
+  await copyFile(abs("server/js9Prefs.json"), out("js9Prefs.json"));
+  console.log(`  _site/ <- ${RUNTIME.length + 1} runtime files`);
 
   console.log("done.");
 }

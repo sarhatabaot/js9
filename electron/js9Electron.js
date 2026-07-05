@@ -506,7 +506,7 @@ js9Electron.defpage = "js9.html";
 js9Electron.preload = path.join(__dirname, "js9ElectronPreload.js");
 
 // helper page
-js9Electron.helperpage = path.join(__dirname, "js9Helper.js");
+js9Electron.helperpage = path.join(__dirname, "..", "server", "js9Helper.js");
 
 // default name for saved file
 js9Electron.defsave = "js9.save";

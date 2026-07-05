@@ -1,3 +1,6 @@
+---
+permalink: index.html
+---
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
    "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -11,14 +14,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=Edge;chrome=1" >
-  <link type="image/x-icon" rel="shortcut icon" href="js9/favicon.ico">
-  <link type="text/css" rel="stylesheet" href="js9/js9support.css">
-  <link type="text/css" rel="stylesheet" href="js9/js9.css">
-  <link rel="apple-touch-icon" href="js9/images/js9-apple-touch-icon.png">
-  <script type="text/javascript" src="js9/js9prefs.js"></script>
-  <script type="text/javascript" src="js9/js9support.min.js"></script>
-  <script type="text/javascript" src="js9/js9.min.js"></script>
-  <script type="text/javascript" src="js9/js9plugins.js"></script>
+  <link type="image/x-icon" rel="shortcut icon" href="favicon.ico">
+  <link type="text/css" rel="stylesheet" href="js9support.css">
+  <link type="text/css" rel="stylesheet" href="js9.css">
+  <link rel="apple-touch-icon" href="images/js9-apple-touch-icon.png">
+  <script type="text/javascript" src="js9prefs.js"></script>
+  <script type="text/javascript" src="js9support.min.js"></script>
+  <script type="text/javascript" src="js9.min.js"></script>
+  <script type="text/javascript" src="js9plugins.js"></script>
   <style type="text/css">
       h2 {
         margin-bottom: 0px;
@@ -167,7 +170,7 @@
         idx = Math.floor(Math.random() * objs.length);
         obj = $.extend(true, {}, objs[idx]);
         obj.parentFile = "data/fits/casa.fits";
-        JS9.Preload("js9/data/fits/casa.fits.gz", obj);
+        JS9.Preload("data/fits/casa.fits.gz", obj);
     }
     // run analysis on current image, defining a function to display results
     function runMyAnalysis(im, xreg){
@@ -341,7 +344,7 @@
       displayed in your browser: click the Analysis tab, choose a
       task, create a region, move it around ...
       <p>
-      Want a <a class="mycontact" href="js9/js9.html">pristine JS9 display</a>?
+      Want a <a class="mycontact" href="js9.html">pristine JS9 display</a>?
     </div>
     <div id="analysis" class="tabcontent mytabcontent">
       <div id="myButtonsDiv">
@@ -353,7 +356,7 @@
       <div id="myAnalysisDiv">
 	<div id="myAnalysisResults">
 	  JS9 can be connected to a
-	  <a href="js9/help/serverside.html" target="_blank">
+	  <a href="help/serverside.html" target="_blank">
 	  server-side (back-end) analysis system</a> to run complex
 	  analysis tasks. Text and plot results can be displayed on
 	  the JS9 web page, or new images loaded into JS9. Virtually
@@ -391,9 +394,9 @@
     <div id="plugins" class="tabcontent mytabcontent">
     <div class="pluginContainer">
     Extend JS9 with
-    <a href="js9/help/localtasks.html" target="_blank">Plugins</a>,
+    <a href="help/localtasks.html" target="_blank">Plugins</a>,
     using the
-    <a href="js9/help/publicapi.html" target="_blank">JS9 Public API</a>
+    <a href="help/publicapi.html" target="_blank">JS9 Public API</a>
     to perform event-driven, local analysis. Create a region, move it around ...
     <p>
     <table>
@@ -408,25 +411,25 @@
       <b>JS9 Help Pages:</b>
       <p>
       <ul>
-      <li><a href="js9/help/user.html" target="_blank">User Manual</a>
-      <li><a href="js9/help/install.html" target="_blank">Installing JS9</a>
-      <li><a href="js9/help/webpage.html" target="_blank">Adding JS9 To a Web Page</a>
-      <li><a href="js9/help/yourdata.html" target="_blank">Adding Data To a Web Page</a>
-      <li><a href="js9/help/localtasks.html" target="_blank">Local Analysis (Plugins) With JS9</a>
-      <li><a href="js9/help/publicapi.html" target="_blank">The JS9 Public API</a>
-      <li><a href="js9/help/helper.html" target="_blank">Adding Server-side (Back-end) Analysis</a>
-      <li><a href="js9/help/serverside.html" target="_blank">Server-side Analysis With JS9</a>
-      <li><a href="js9/help/extmsg.html" target="_blank">External Messaging</a>
-      <li><a href="js9/help/desktop.html" target="_blank">JS9 on the Desktop</a>
-      <li><a href="js9/help/python.html" target="_blank">JS9 with Python and Jupyter</a>
-      <li><a href="js9/help/archives.html" target="_blank">Accessing Data Archives</a>
-      <li><a href="js9/help/preferences.html" target="_blank">Setting Site Preferences</a>
-      <li><a href="js9/help/regions.html" target="_blank">Regions Format</a>
-      <li><a href="js9/help/changelog.html" target="_blank">ChangeLog</a>
-      <li><a href="js9/help/repfile.html" target="_blank">Dealing with Large Files</a>
-      <li><a href="js9/help/memory.html" target="_blank">Dealing with Memory Limitations</a>
-      <li><a href="js9/help/knownissues.html" target="_blank">Known Issues</a>
-      <li><a href="js9/help/securityissues.html" target="_blank">Security Issues</a>
+      <li><a href="help/user.html" target="_blank">User Manual</a>
+      <li><a href="help/install.html" target="_blank">Installing JS9</a>
+      <li><a href="help/webpage.html" target="_blank">Adding JS9 To a Web Page</a>
+      <li><a href="help/yourdata.html" target="_blank">Adding Data To a Web Page</a>
+      <li><a href="help/localtasks.html" target="_blank">Local Analysis (Plugins) With JS9</a>
+      <li><a href="help/publicapi.html" target="_blank">The JS9 Public API</a>
+      <li><a href="help/helper.html" target="_blank">Adding Server-side (Back-end) Analysis</a>
+      <li><a href="help/serverside.html" target="_blank">Server-side Analysis With JS9</a>
+      <li><a href="help/extmsg.html" target="_blank">External Messaging</a>
+      <li><a href="help/desktop.html" target="_blank">JS9 on the Desktop</a>
+      <li><a href="help/python.html" target="_blank">JS9 with Python and Jupyter</a>
+      <li><a href="help/archives.html" target="_blank">Accessing Data Archives</a>
+      <li><a href="help/preferences.html" target="_blank">Setting Site Preferences</a>
+      <li><a href="help/regions.html" target="_blank">Regions Format</a>
+      <li><a href="help/changelog.html" target="_blank">ChangeLog</a>
+      <li><a href="help/repfile.html" target="_blank">Dealing with Large Files</a>
+      <li><a href="help/memory.html" target="_blank">Dealing with Memory Limitations</a>
+      <li><a href="help/knownissues.html" target="_blank">Known Issues</a>
+      <li><a href="help/securityissues.html" target="_blank">Security Issues</a>
       </ul>
     </div>
     <div id="demos" class="tabcontent mytabcontent">
@@ -505,7 +508,7 @@
       <b>Release 3.2 (11/06/20)</b> mainly changes to support the
       upcoming desktop Voyager app, but also a few bug fixes
       <p>
-      For more details, see the <a href="js9/help/changelog.html" target="_blank">ChangeLog</a>.
+      For more details, see the <a href="help/changelog.html" target="_blank">ChangeLog</a>.
       <p>
       JS9 is distributed under the terms of The MIT License.
     </div>
@@ -515,7 +518,7 @@
       <li><a href="downloads/js9-3.9.tgz">js9 v3.9 tar file</a>
       </ul>
       Simply untar to display FITS images with all basic JS9 functionality.
-      <a href="js9/help/install.html" target="_blank">Install JS9</a>
+      <a href="help/install.html" target="_blank">Install JS9</a>
       to add functionality, such as server-side analysis.
       <p>
       To run the demo pages, download the <b>data</b> tar file here:
