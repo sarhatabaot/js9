@@ -34,11 +34,15 @@ jobs:
         # The built site (_site/) is not committed.
         run: npm run build
 
-      - name: Syntax-check JS (root sources + generated bundles in _site/)
+      - name: Syntax-check JS (node sources + assembled/generated bundles in _site/)
+        # The browser core is now split into src/js9/*.js fragments; those are not
+        # independently parseable (the IIFE wrapper spans several files), so we
+        # syntax-check the assembled _site/js9.js instead of the fragments.
         run: |
-          for f in js9.js js9Helper.js js9Msg.js js9Regions.js js9worker.js astroem.js \
-                   _site/js9.min.js _site/js9-allinone.js _site/js9support.min.js \
-                   _site/js9plugins.js; do
+          for f in server/js9Helper.js bin/js9Msg.js bin/js9Regions.js \
+                   src/js9worker.js src/astroem.js \
+                   _site/js9.js _site/js9.min.js _site/js9-allinone.js \
+                   _site/js9support.min.js _site/js9plugins.js; do
             node --check "$f" && echo "OK   $f"
           done
 
