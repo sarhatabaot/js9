@@ -1,0 +1,30 @@
+# Configures the "Generate release notes" button on GitHub Releases: how merged
+# pull requests are grouped into the auto-generated changelog. Categories match
+# on PR labels, top to bottom; the "*" catch-all collects anything else.
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+  categories:
+    - title: Features
+      labels:
+        - feature
+        - enhancement
+    - title: Fixes
+      labels:
+        - bug
+        - fix
+    - title: Documentation
+      labels:
+        - documentation
+        - docs
+    - title: Maintenance & tooling
+      labels:
+        - chore
+        - ci
+        - build
+        - refactor
+        - dependencies
+    - title: Other changes
+      labels:
+        - "*"

@@ -1,0 +1,72 @@
+name: Attach release assets
+
+# When you publish a GitHub Release, build the distributable JS9 bundles and
+# attach them to that release, so people can download a versioned drop-in.
+#
+# Only the library build is needed here (node scripts/build.mjs), not the docs
+# site -- so this is fast and needs no Pagefind/Eleventy step.
+#
+# npm publishing is a SEPARATE, currently-disabled workflow (publish.yml); this
+# one never touches npm.
+#
+# Assets attached to each release:
+#   js9-allinone.js   -- single-file JS bundle (support + core + plugins + engine glue)
+#   js9-allinone.css  -- matching single-file stylesheet
+#   js9-dist.zip      -- the full self-host set (modular bundles + WebAssembly engine)
+
+on:
+  release:
+    types: [published]
+  # Manual re-run: rebuild and (re)attach assets to an existing release tag.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to build and attach assets to (e.g. v3.10.0)"
+        required: true
+
+# Uploading release assets needs write access to repository contents.
+permissions:
+  contents: write
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Build the exact code the release points at (the tag), whether the
+          # run came from a published release or a manual dispatch.
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the library bundles (-> _site/)
+        run: node scripts/build.mjs
+
+      - name: Package the full self-host distribution
+        run: |
+          zip -j js9-dist.zip \
+            _site/js9-allinone.js _site/js9-allinone.css \
+            _site/js9support.min.js _site/js9support.css \
+            _site/js9.min.js _site/js9plugins.min.js _site/js9.css \
+            _site/astroem.js _site/astroemw.js _site/astroemw.wasm \
+            _site/js9worker.js _site/js9prefs.js _site/js9Prefs.json \
+            _site/js9PostMessage.js
+
+      - name: Attach assets to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        # --clobber makes re-runs idempotent (overwrite same-named assets).
+        run: |
+          gh release upload "$TAG" \
+            _site/js9-allinone.js \
+            _site/js9-allinone.css \
+            js9-dist.zip \
+            --clobber
