@@ -334,7 +334,7 @@
 	        im = JS9.GetImage({display: values.display});
 	        if( use_internal ){
 		    table = new Starbase(reply.responseText, {type: {default: strtod}, units: values.units, skip: "#\n"});
-		    gopts = $.extend(true, {}, JS9.Catalogs.opts, {tooltip: "$xreg.data.ra $xreg.data.dec"});
+		    gopts = JS9.extend(true, {}, JS9.Catalogs.opts, {tooltip: "$xreg.data.ra $xreg.data.dec"});
 		    opts = {color: "yellow"};
 
 		    if( !table.data.length ){
