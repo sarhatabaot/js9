@@ -22,3 +22,38 @@ test("Pagefind search returns results", async ({ page }) => {
   // results load asynchronously
   await expect(page.locator(".pagefind-ui__result").first()).toBeVisible({ timeout: 15000 });
 });
+
+test("landing page builds the hero editor and loads the example image", async ({ page }) => {
+  await page.goto("/_site/index.html", { waitUntil: "load" });
+  // wait for JS9 ready + the declarative hero editor built + the image loaded
+  await page.waitForFunction(
+    () => {
+      try {
+        const J = window.JS9;
+        if (!(J && J.fits && J.fits.name)) return false;
+        const ed = document.querySelector(".JS9Editor");
+        if (!(ed && ed.querySelector(".JS9Menubar") && ed.querySelector(".JS9"))) return false;
+        return J.images && J.images.length > 0; // example image loaded
+      } catch {
+        return false;
+      }
+    },
+    { timeout: 60000 }
+  );
+  // full layout: all five chrome components are present
+  const parts = await page.evaluate(() => {
+    const ed = document.querySelector(".JS9Editor");
+    return {
+      menubar: !!ed.querySelector(".JS9Menubar"),
+      toolbar: !!ed.querySelector(".JS9Toolbar"),
+      colorbar: !!ed.querySelector(".JS9Colorbar"),
+      statusbar: !!ed.querySelector(".JS9Statusbar"),
+      loaded: window.JS9.images.length > 0,
+    };
+  });
+  expect(parts.menubar).toBe(true);
+  expect(parts.toolbar).toBe(true);
+  expect(parts.colorbar).toBe(true);
+  expect(parts.statusbar).toBe(true);
+  expect(parts.loaded).toBe(true);
+});

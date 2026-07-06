@@ -49,6 +49,7 @@ export default {
         { slug: "changelog", title: "Changelog" },
         { slug: "knownissues", title: "Known Issues" },
         { slug: "securityissues", title: "Security" },
+        { slug: "credits", title: "Credits" },
       ],
     },
   ],
