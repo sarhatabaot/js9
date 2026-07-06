@@ -10,13 +10,17 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? "list" : [["list"]],
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never" }]]
+    : [["list"]],
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "on-first-retry",
   },
+  // Run every spec on both Chromium and Firefox (the team uses Firefox).
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
   ],
   webServer: {
     command: "node tests/e2e/support/serve.mjs",

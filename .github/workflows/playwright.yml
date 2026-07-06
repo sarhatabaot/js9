@@ -1,0 +1,44 @@
+name: Playwright
+
+# End-to-end tests: build the site, then run the Playwright suite on BOTH
+# Chromium and Firefox (the team uses Firefox). The HTML report is uploaded as
+# an artifact. Build/type/syntax checks live in the separate ci.yml workflow.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        # the "prepare" hook builds _site/ (the harnesses load /_site/*)
+        run: npm ci
+
+      - name: Build the site (_site/) for the harness pages
+        run: npm run build
+
+      - name: Install Playwright browsers (chromium + firefox)
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Run the e2e suite (chromium + firefox)
+        run: npm test
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
