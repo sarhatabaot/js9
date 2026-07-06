@@ -778,6 +778,60 @@ JS9.loadScript = function(url, func, error){
     head.appendChild(script);
 };
 
+// synchronous JSON GET (native sync XHR). jQuery's $.ajax async:false used the
+// same synchronous XMLHttpRequest under the hood, so this is behavior-for-
+// behavior; a status of 0 (local file) is treated as success, as jQuery did.
+JS9.getJSONSync = function(url){
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url, false);
+    if( xhr.overrideMimeType ){ xhr.overrideMimeType("application/json"); }
+    xhr.send(null);
+    if( xhr.status && (xhr.status < 200 || xhr.status >= 300) ){
+	throw new Error(`HTTP ${xhr.status} for ${url}`);
+    }
+    return JSON.parse(xhr.responseText);
+};
+
+// JSONP request (native <script> + global callback). Replaces $.ajax
+// dataType:"jsonp"; used (not fetch) to ping a helper cross-origin without CORS.
+JS9.jsonp = function(url, success, error){
+    const cb = `JS9jsonp${JS9.jsonp._n = (JS9.jsonp._n || 0) + 1}`;
+    const script = document.createElement("script");
+    let done = false;
+    const cleanup = () => {
+	try{ delete window[cb]; } catch(e){ window[cb] = undefined; }
+	if( script.parentNode ){ script.parentNode.removeChild(script); }
+    };
+    window[cb] = (data) => { done = true; cleanup(); if( success ){ success(data); } };
+    script.onerror = () => { if( !done ){ cleanup(); if( error ){ error(); } } };
+    const sep = url.indexOf("?") >= 0 ? "&" : "?";
+    script.src = `${url}${sep}callback=${cb}`;
+    (document.getElementsByTagName("head")[0] || document.documentElement).appendChild(script);
+};
+
+// fetch text, with jQuery-style `data` serialization: a query string for GET,
+// a form-urlencoded body for POST. Replaces $.ajax dataType:"text".
+JS9.fetchText = function(url, method, data, success, error){
+    method = (method || "GET").toUpperCase();
+    const opts = {method, cache: "no-store"};
+    if( data ){
+	const params = new URLSearchParams(data).toString();
+	if( method === "GET" ){
+	    url += (url.indexOf("?") >= 0 ? "&" : "?") + params;
+	} else {
+	    opts.body = params;
+	    opts.headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"};
+	}
+    }
+    fetch(url, opts)
+	.then((resp) => {
+	    if( !resp.ok ){ throw new Error(`HTTP ${resp.status}`); }
+	    return resp.text();
+	})
+	.then((text) => { if( success ){ success(text); } })
+	.catch((e) => { if( error ){ error(e); } });
+};
+
 // fetch a file URL (as a blob) and process it
 // (as of 2/2015: can't use $.ajax to retrieve a blob: use low-level xhr)
 JS9.fetchURL = function(name, url, opts, handler){
@@ -2462,22 +2516,15 @@ JS9.mergePrefs = function(obj){
 // load a prefs file and merge preferences into global JS9 object
 JS9.loadPrefs = function(url, doerr){
     // load site/user preferences synchronously
-    $.ajax({
-	url: url,
-	cache: false,
-	dataType: "json",
-	mimeType: "application/json",
-	async: false,
-	success: (obj) => {
-	    JS9.mergePrefs(obj);
-	},
-	// eslint-disable-next-line no-unused-vars
-	error: (jqXHR, textStatus, errorThrown) => {
-	    if( doerr ){
-		JS9.log("JS9 prefs file not available: %s", url);
-	    }
+    // native sync XHR (jQuery async:false used the same primitive)
+    try{
+	JS9.mergePrefs(JS9.getJSONSync(url));
+    }
+    catch(e){
+	if( doerr ){
+	    JS9.log("JS9 prefs file not available: %s", url);
 	}
-    });
+    }
 };
 
 // is this object a typed array?

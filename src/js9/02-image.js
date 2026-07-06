@@ -5527,12 +5527,15 @@ JS9.Image.prototype.displayAnalysis = function(type, s, opts){
 	    if( JS9.allinone ){
 		divid.html(s);
 	    } else {
-		$.ajax({
-		    url: s,
-		    cache: false,  // required for v3 socket.io
-		    dataType: "text",
-		    success: (data) => { divid.html(data); }
-		});
+		// fetch the form HTML and insert it (jQuery is kept for the DOM
+		// insert). cache:"no-store" mirrors the old $.ajax cache:false
+		// (required for v3 socket.io); stay silent on error as before.
+		fetch(s, {cache: "no-store"})
+		    .then((resp) => resp.text())
+		    .then((data) => { divid.html(data); })
+		    .catch((e) => {
+			if( JS9.DEBUG ){ JS9.log(`could not load: ${s}`, e); }
+		    });
 	    }
 	} else {
 	    if( type === "params" ){
