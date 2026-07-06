@@ -1,16 +1,18 @@
 ---
 permalink: index.html
+templateEngineOverride: liquid
 ---
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
    "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-  <!-- web page for main JS9 web site: https://js9.si.edu -->
-  <meta name="publisher" content="Center for Astrophysics">
+  <!-- JS9 homepage: {{ site.homepage }} -->
   <meta name="language" content="en">
-  <meta name="date" content="2024-12-13">
-  <meta name="author" content="Eric Mandel, CfA">
-  <meta name="keywords" content="Harvard Smithsonian Chandra high-energy x-ray astronomy astrophysics visualization DS9 JS9 telescope observatory research">
+  <meta name="author" content="{{ site.maintainer.name }}">
+  <meta name="keywords" content="astronomy astrophysics FITS image display visualization DS9 JS9 WebAssembly">
+  <meta name="description" content="JS9: {{ site.tagline }} (a browser-based FITS viewer).">
+  <meta name="generator" content="JS9 {{ site.version }}">
+
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=Edge;chrome=1" >
@@ -521,28 +523,20 @@ permalink: index.html
       JS9 is distributed under the terms of The MIT License.
     </div>
     <div id="get" class="tabcontent mytabcontent">
-      The <b>JS9 current release</b> tar file is available here:
+      <b>Get JS9</b> from GitHub:
       <ul>
-      <li><a href="downloads/js9-3.9.tgz">js9 v3.9 tar file</a>
+      <li> <a href="{{ site.repo }}" target="_blank" rel="noopener noreferrer">JS9 on GitHub</a>
       </ul>
-      Simply untar to display FITS images with all basic JS9 functionality.
-      <a href="help/install.html" target="_blank">Install JS9</a>
-      to add functionality, such as server-side analysis.
-      <p>
-      To run the demo pages, download the <b>data</b> tar file here:
-      <ul>
-      <li><a href="downloads/js9-data.tgz">js9 data</a>
-      </ul>
-      <p>
-      The <b>latest bug fixes and enhancements</b> are available on GitHub:
-      <ul>
-      <li> <a href="https://github.com/ericmandel/js9" target="_blank" rel="noopener noreferrer">js9 on GitHub</a>
-      </ul>
-      Clone JS9 from GitHub once and then pull updates at any time:
+      Clone the repo, install dependencies, and build/serve the site:
       <pre>
-    git clone https://github.com/ericmandel/js9
-    git pull
+    git clone {{ site.repo }}
+    cd js9
+    npm install
+    npm run serve
       </pre>
+      See <a href="help/install.html" target="_blank">Installing JS9</a> and
+      <a href="help/deployment.html" target="_blank">Deployment Modes</a>
+      (static/client-side vs. the Node helper) for details.
       <p>
       The <b>pyjs9 Python interface</b> is available on GitHub:
       <ul>
@@ -602,28 +596,26 @@ permalink: index.html
     </div>
     </div>
     <div class="mycontact1">
-    Source code <a class="mycontact" href="https://github.com/ericmandel/js9" target="_blank">@GitHub</a>
+    Source code <a class="mycontact" href="{{ site.repo }}" target="_blank" rel="noopener noreferrer">@GitHub</a>
     </div>
     </td>
     </tr>
     <tr>
     <td style="text-align:center" colspan="2">
     <div class="myfooter">
-<a href="https://www.cfa.harvard.edu/about" class="navfooter" target='_blank'>About</a>&nbsp;|&nbsp;
-<a href="https://www.cfa.harvard.edu/big-questions" class="navfooter" target='_blank'>Big Questions</a>&nbsp;|&nbsp;
-<a href="https://www.cfa.harvard.edu/research" class="navfooter" target='_blank'>Research</a>&nbsp;|&nbsp;
-<a href="https://www.cfa.harvard.edu/events" class="navfooter" target='_blank'>Events</a>&nbsp;|&nbsp;
-<a href="https://www.cfa.harvard.edu/news" class="navfooter" target='_blank'>News</a>&nbsp;|&nbsp;
-<a href="https://www.cfa.harvard.edu/privacy-statement" class="navfooter" target='_blank'>Privacy</a>
-
-
+      <a href="{{ site.repo }}" class="navfooter" target="_blank" rel="noopener noreferrer">GitHub</a>&nbsp;|&nbsp;
+      <a href="help/user.html" class="navfooter" target="_blank">Docs</a>&nbsp;|&nbsp;
+      {{ site.license }} License
     </div>
     </td>
     </tr>
     <tr>
     <td style="text-align:center" colspan="2">
     <div class="myfooter">
-&nbsp;&nbsp;CENTER FOR ASTROPHYSICS&nbsp;&nbsp;|&nbsp;&nbsp;HARVARD AND SMITHSONIAN<br>60 GARDEN STREET, CAMBRIDGE, MA 02138
+      Created and maintained through v3.9 by {{ site.originalAuthors }} ({{ site.originalOrg }});
+      maintained from v{{ site.handoverVersion }} by
+      <a href="{{ site.maintainer.url }}" class="mycontact" target="_blank" rel="noopener noreferrer">{{ site.maintainer.name }}</a>
+      ({{ site.maintainer.org }}).
     </div>
     </td>
     </tr>
