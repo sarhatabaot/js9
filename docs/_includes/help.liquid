@@ -1,0 +1,30 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<link type="text/css" rel="stylesheet" href="{{ prefix }}js9.css">
+<title>{{ title }}</title>
+{% if head %}{{ head }}{% endif %}
+</head>
+<body>
+<div class="helpLogo"><img src="{{ prefix }}images/js9logo.png" alt="js9"></div>
+<div class="helpContainer">
+{{ content }}
+</div>
+<footer class="helpFooter" style="margin-top:2em;padding-top:1em;border-top:1px solid #ccc;font-size:0.85em;color:#666;">
+  <p>
+    {{ site.name }} {{ site.version }} &middot;
+    <a href="{{ site.repo }}">GitHub</a> &middot;
+    <a href="{{ site.homepage }}">Website</a> &middot;
+    {{ site.license }} License
+  </p>
+  <p>
+    Created and maintained through v3.9 by {{ site.originalAuthors }}
+    ({{ site.originalOrg }}); maintained from v{{ site.handoverVersion }} by
+    <a href="{{ site.maintainer.url }}">{{ site.maintainer.name }}</a>
+    ({{ site.maintainer.org }}).
+  </p>
+</footer>
+</body>
+</html>

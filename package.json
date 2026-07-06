@@ -64,7 +64,11 @@
     "ds9",
     "js9"
   ],
-  "author": "Eric Mandel <eric@cfa.harvard.edu> (https://js9.si.edu)",
+  "author": "Omer Oreg (https://sarhatabaot.net)",
+  "contributors": [
+    "Eric Mandel (Center for Astrophysics | Harvard & Smithsonian) — original author, JS9 through v3.9",
+    "Alexey Vikhlinin (Center for Astrophysics | Harvard & Smithsonian) — original author"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/sarhatabaot/js9/issues"
