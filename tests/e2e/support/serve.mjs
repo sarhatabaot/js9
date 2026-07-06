@@ -11,6 +11,7 @@ import path from "node:path";
 export const PORT = 8438;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 
+/** @type {Record<string, string>} */
 const MIME = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -28,7 +29,7 @@ const MIME = {
 
 const server = http.createServer(async (req, res) => {
   try {
-    const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+    const urlPath = decodeURIComponent(new URL(req.url || "/", "http://x").pathname);
     // Health check for Playwright's webServer readiness probe.
     if (urlPath === "/") { res.writeHead(200, { "Content-Type": "text/plain" }).end("ok"); return; }
     const filePath = path.join(ROOT, path.normalize(urlPath));

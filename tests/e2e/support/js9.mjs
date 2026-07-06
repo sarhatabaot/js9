@@ -5,11 +5,14 @@
 // a harness page and waits for readiness; loadFits() loads an image via
 // JS9.Preload (which queues until the module is ready) and resolves on onload.
 
+/** @typedef {import("@playwright/test").Page} Page */
+
 // A tiny FITS committed to the repo (800x400, int32). The only image fixture
 // available without the external data/ set — see PHASE2-DEPS.md / smoke.py notes.
 export const TINY_FITS = "/build/i800400.fits.gz";
 
 // Navigate to a harness page and wait until JS9 + the FITS module are ready.
+/** @param {Page} page @param {"source"|"min"|"allinone"} [variant] */
 export async function openHarness(page, variant = "source") {
   const file = {
     source: "harness.html",
@@ -26,6 +29,7 @@ export async function openHarness(page, variant = "source") {
 
 // Load a FITS image and resolve when JS9 reports it loaded. Uses Preload so it
 // is safe even if called the instant the module becomes ready.
+/** @param {Page} page @param {string} [file] @param {Record<string, any>} [opts] */
 export async function loadFits(page, file = TINY_FITS, opts = {}) {
   return page.evaluate(
     ({ file, opts }) =>
@@ -48,6 +52,13 @@ export async function loadFits(page, file = TINY_FITS, opts = {}) {
 }
 
 // Evaluate a JS9 API call in the page. `fn` receives the JS9 global.
+/**
+ * @template A, R
+ * @param {Page} page
+ * @param {(JS9: any, arg: A) => R} fn
+ * @param {A} [arg]
+ * @returns {Promise<R>}
+ */
 export function js9(page, fn, arg) {
   return page.evaluate(
     ({ src, arg }) => {

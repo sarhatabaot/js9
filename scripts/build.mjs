@@ -23,7 +23,9 @@ import { allinoneGifs, sunIconCss } from "./allinone-assets.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUTDIR = "_site";
+/** @param {string} p */
 const abs = (p) => path.join(ROOT, p); // source, repo-relative
+/** @param {string} p */
 const out = (p) => path.join(ROOT, OUTDIR, p); // build output in _site/
 
 // --- file lists ------------------------------------------------------------
@@ -81,11 +83,13 @@ const RUNTIME = [
 ];
 
 // --- helpers ---------------------------------------------------------------
+/** @param {string[]} files */
 async function concatFiles(files) {
   const bufs = await Promise.all(files.map((f) => readFile(abs(f))));
   return Buffer.concat(bufs);
 }
 
+/** @param {string} name @param {Buffer | Uint8Array | string} data */
 async function writeOut(name, data) {
   await writeFile(out(name), data);
   console.log(`  _site/${name}`);
@@ -104,6 +108,7 @@ async function assembleCore() {
 
 // Port of the old mkallinone sed pipeline: inline a params/*.html dialog as one
 // escaped JS string (see git history for the original bash).
+/** @param {string} file @param {boolean} [simple] */
 async function embedHtml(file, simple) {
   let lines = (await readFile(abs(file), "utf8")).split("\n");
   if (simple) {
