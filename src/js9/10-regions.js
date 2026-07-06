@@ -960,165 +960,7 @@ JS9.Regions.processConfigForm = function(form, obj, arr){
     const alen = arr.length;
     const opts = {};
     const wcsinfo = this.raw.wcsinfo || {cdelt1: 1, cdelt2: 1};
-    const fmt= (val) => {
-	if( val === undefined ){
-	    return undefined;
-	}
-	if( (typeof val === "number") && (val % 1 !== 0) ){
-	    val = Math.round((val + 0.00001) * 10000) / 10000;
-	}
-	return(String(val));
-    };
-    const fmtcheck = (val1, val2) => {
-	if( multi ){
-	    return true;
-	}
-	if( val1 === undefined ){
-	    return false;
-	}
-	return fmt(val1) !== fmt(val2);
-    };
-    const newval = (obj, key, val) => {
-	// let v1, v2;
-	// special keys having no public or param equivalents
-	if( key === "remove" ){
-	    return val === "selected";
-	}
-	if( key === "childtext" ){
-	    if( obj.params.children && obj.params.children.length > 0 ){
-		if( obj.params.children[0].obj        &&
-		    obj.params.children[0].obj.params ){
-		    return val !== obj.params.children[0].obj.params.text;
-		}
-		return false;
-	    }
-	    return val !== obj.params.text;
-	}
-	if( key === "strokeWidth" ){
-	    if( obj.params && obj.params.sw1 ){
-		return val !== obj.params.sw1;
-	    } else {
-		return true;
-	    }
-	}
-	if( key === "strokeDashes" ){
-	    if( obj.strokeDashArray){
-		return JSON.stringify(obj.strokeDashArray) !==
-		       JSON.stringify(val);
-	    }
-	    if( $.isArray(val) ){
-		switch(val.length){
-		case 0:
-		    return false;
-		case 1:
-		    return val[0] !== "";
-		case 2:
-		default:
-		    return val[0] !== "" && val[1] !== "";
-		}
-	    } else {
-		return val !== "";
-	    }
-	}
-	if( key !== "tags" && val === "" ){
-	    return false;
-	}
-	if( key === "misc" && val !== "" ){
-	    return true;
-	}
-	if( key === "radii" && obj.params.radii ){
-	    // https://stackoverflow.com/questions/1773069/using-jquery-to-compare-two-arrays-of-javascript-objects
-	    // v1 = val.split(",").map((item) => {return parseFloat(item)});
-	    // v2 = obj.params.radii;
-	    // return $(v1).not(v2).length !== 0 || $(v2).not(v1).length !== 0;
-	    // always return true or else annuli won't change other properties
-	    return true;
-	}
-	if( key === "angle" ){
-	    return obj.angle !== -parseFloat(val);
-	}
-	if( key === "ix" ){
-	    if( obj.pub.preservedcoords             &&
-		val.charAt(0).toLowerCase() === "d" ){
-		return fmtcheck(obj.pub.dx, JS9.saostrtod(val.substring(1)));
-	    } else {
-		return fmtcheck(obj.pub.x, JS9.saostrtod(val));
-	    }
-	}
-	if( key === "iy" ){
-	    if( obj.pub.preservedcoords             &&
-		val.charAt(0).toLowerCase() === "d" ){
-		return fmtcheck(obj.pub.dy, JS9.saostrtod(val.substring(1)));
-	    } else {
-		return fmtcheck(obj.pub.y, JS9.saostrtod(val));
-	    }
-	}
-	if( key === "px" && obj.pub.lcs ){
-	    return fmtcheck(obj.pub.lcs.x.toFixed(1), val);
-	}
-	if( key === "py" && obj.pub.lcs ){
-	    return fmtcheck(obj.pub.lcs.y.toFixed(1), val);
-	}
-	if( key === "ra" ){
-	    if( obj.pub.wcsconfig && obj.pub.wcsconfig.wcsposstr ){
-		return fmtcheck(JS9.saostrtod(obj.pub.wcsconfig.wcsposstr[0]),
-				JS9.saostrtod(val));
-	    } else if( obj.pub.wcsposstr ){
-		return fmtcheck(JS9.saostrtod(obj.pub.wcsposstr[0]),
-				JS9.saostrtod(val));
-	    }
-	    return false;
-	}
-	if( key === "dec" ){
-	    if( obj.pub.wcsconfig && obj.pub.wcsconfig.wcsposstr ){
-		return fmtcheck(JS9.saostrtod(obj.pub.wcsconfig.wcsposstr[1]),
-				JS9.saostrtod(val));
-	    } else if( obj.pub.wcsposstr ){
-		return fmtcheck(JS9.saostrtod(obj.pub.wcsposstr[1]),
-				JS9.saostrtod(val));
-	    }
-	}
-	if( key === "sticky" ){
-	    if( multi ){
-		return false;
-	    } else {
-		return fmtcheck(obj.pub.sticky||false, val);
-	    }
-	}
-	if( key === "locked" ){
-	    if( multi ){
-		return false;
-	    } else {
-		if( obj.params.changeable !== false ){
-		    return val === false;
-		} else {
-		    return val === true;
-		}
-	    }
-	}
-	if( key === "listonchange" ){
-	    if( multi ){
-		return false;
-	    }
-	}
-	if( obj.pub.lcs && obj.pub.lcs[key] !== undefined ){
-	    if( fmtcheck(obj.pub.lcs[key], val) ){
-		return true;
-	    }
-	    // don't look further or we end up checking image x, y
-	    return false;
-	}
-	if( fmtcheck(obj.pub[key], val) ){
-	    return true;
-	}
-	if( fmtcheck(obj.params[key], val) ){
-	    return true;
-	}
-	if( fmtcheck(obj[key], val) ){
-	    return true;
-	}
-	return false;
-    };
+    const newval = (obj, key, val) => JS9.Regions._configFieldChanged(obj, key, val, multi);
     const getval = (s) => {
 	if( s === "true" ){
 	    return true;
@@ -1518,6 +1360,170 @@ JS9.Regions.processConfigForm = function(form, obj, arr){
 	}
 	this.initRegionsForm(obj, {multi});
     }
+};
+
+// decide whether a config-form field's value differs from the region's
+// current value (per-key comparisons for coords, size, angle, wcs, tags,
+// flags, ...). Extracted from processConfigForm (newval + its fmt/fmtcheck
+// helpers); `this`-free.
+JS9.Regions._configFieldChanged = function(obj, key, val, multi){
+    const fmt= (val) => {
+	if( val === undefined ){
+	    return undefined;
+	}
+	if( (typeof val === "number") && (val % 1 !== 0) ){
+	    val = Math.round((val + 0.00001) * 10000) / 10000;
+	}
+	return(String(val));
+    };
+    const fmtcheck = (val1, val2) => {
+	if( multi ){
+	    return true;
+	}
+	if( val1 === undefined ){
+	    return false;
+	}
+	return fmt(val1) !== fmt(val2);
+    };
+// let v1, v2;
+// special keys having no public or param equivalents
+if( key === "remove" ){
+    return val === "selected";
+}
+if( key === "childtext" ){
+    if( obj.params.children && obj.params.children.length > 0 ){
+	if( obj.params.children[0].obj        &&
+	    obj.params.children[0].obj.params ){
+	    return val !== obj.params.children[0].obj.params.text;
+	}
+	return false;
+    }
+    return val !== obj.params.text;
+}
+if( key === "strokeWidth" ){
+    if( obj.params && obj.params.sw1 ){
+	return val !== obj.params.sw1;
+    } else {
+	return true;
+    }
+}
+if( key === "strokeDashes" ){
+    if( obj.strokeDashArray){
+	return JSON.stringify(obj.strokeDashArray) !==
+	       JSON.stringify(val);
+    }
+    if( $.isArray(val) ){
+	switch(val.length){
+	case 0:
+	    return false;
+	case 1:
+	    return val[0] !== "";
+	case 2:
+	default:
+	    return val[0] !== "" && val[1] !== "";
+	}
+    } else {
+	return val !== "";
+    }
+}
+if( key !== "tags" && val === "" ){
+    return false;
+}
+if( key === "misc" && val !== "" ){
+    return true;
+}
+if( key === "radii" && obj.params.radii ){
+    // https://stackoverflow.com/questions/1773069/using-jquery-to-compare-two-arrays-of-javascript-objects
+    // v1 = val.split(",").map((item) => {return parseFloat(item)});
+    // v2 = obj.params.radii;
+    // return $(v1).not(v2).length !== 0 || $(v2).not(v1).length !== 0;
+    // always return true or else annuli won't change other properties
+    return true;
+}
+if( key === "angle" ){
+    return obj.angle !== -parseFloat(val);
+}
+if( key === "ix" ){
+    if( obj.pub.preservedcoords             &&
+	val.charAt(0).toLowerCase() === "d" ){
+	return fmtcheck(obj.pub.dx, JS9.saostrtod(val.substring(1)));
+    } else {
+	return fmtcheck(obj.pub.x, JS9.saostrtod(val));
+    }
+}
+if( key === "iy" ){
+    if( obj.pub.preservedcoords             &&
+	val.charAt(0).toLowerCase() === "d" ){
+	return fmtcheck(obj.pub.dy, JS9.saostrtod(val.substring(1)));
+    } else {
+	return fmtcheck(obj.pub.y, JS9.saostrtod(val));
+    }
+}
+if( key === "px" && obj.pub.lcs ){
+    return fmtcheck(obj.pub.lcs.x.toFixed(1), val);
+}
+if( key === "py" && obj.pub.lcs ){
+    return fmtcheck(obj.pub.lcs.y.toFixed(1), val);
+}
+if( key === "ra" ){
+    if( obj.pub.wcsconfig && obj.pub.wcsconfig.wcsposstr ){
+	return fmtcheck(JS9.saostrtod(obj.pub.wcsconfig.wcsposstr[0]),
+			JS9.saostrtod(val));
+    } else if( obj.pub.wcsposstr ){
+	return fmtcheck(JS9.saostrtod(obj.pub.wcsposstr[0]),
+			JS9.saostrtod(val));
+    }
+    return false;
+}
+if( key === "dec" ){
+    if( obj.pub.wcsconfig && obj.pub.wcsconfig.wcsposstr ){
+	return fmtcheck(JS9.saostrtod(obj.pub.wcsconfig.wcsposstr[1]),
+			JS9.saostrtod(val));
+    } else if( obj.pub.wcsposstr ){
+	return fmtcheck(JS9.saostrtod(obj.pub.wcsposstr[1]),
+			JS9.saostrtod(val));
+    }
+}
+if( key === "sticky" ){
+    if( multi ){
+	return false;
+    } else {
+	return fmtcheck(obj.pub.sticky||false, val);
+    }
+}
+if( key === "locked" ){
+    if( multi ){
+	return false;
+    } else {
+	if( obj.params.changeable !== false ){
+	    return val === false;
+	} else {
+	    return val === true;
+	}
+    }
+}
+if( key === "listonchange" ){
+    if( multi ){
+	return false;
+    }
+}
+if( obj.pub.lcs && obj.pub.lcs[key] !== undefined ){
+    if( fmtcheck(obj.pub.lcs[key], val) ){
+	return true;
+    }
+    // don't look further or we end up checking image x, y
+    return false;
+}
+if( fmtcheck(obj.pub[key], val) ){
+    return true;
+}
+if( fmtcheck(obj.params[key], val) ){
+    return true;
+}
+if( fmtcheck(obj[key], val) ){
+    return true;
+}
+return false;
 };
 
 // convenience routine used in regionsConfig.html
