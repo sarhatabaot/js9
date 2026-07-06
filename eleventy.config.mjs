@@ -6,6 +6,7 @@
 // htmlTemplateEngine is disabled: the pages contain literal {{ }}, {% %} and
 // { } (code/CSS examples) that must not be interpreted as templates. Only the
 // .njk layout is templated; page content is inserted verbatim.
+/** @param {any} eleventyConfig */
 export default function (eleventyConfig) {
   // Build inputs bundled by scripts/build.mjs — neither templated nor copied.
   eleventyConfig.ignores.add("docs/assets/js");

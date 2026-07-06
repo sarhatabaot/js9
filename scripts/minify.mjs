@@ -17,6 +17,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 // Preserve the leading block-comment banner (copyright / license) of a source
 // file — esbuild's minifier would otherwise strip it.
+/** @param {string} file */
 async function leadingBanner(file) {
   const src = await readFile(file, "utf8");
   const m = src.match(/^\s*\/\*[\s\S]*?\*\//);
@@ -25,6 +26,7 @@ async function leadingBanner(file) {
 
 // Minify "file" into "outFile" (default: sibling "foo.min.js"). Returns the
 // output path.
+/** @param {string} file @param {string} [outFile] @returns {Promise<string>} */
 export async function minifyFile(file, outFile) {
   if (!file.endsWith(".js")) throw new Error(`not a .js file: ${file}`);
   const outfile = outFile || file.replace(/\.js$/, ".min.js");
@@ -42,6 +44,7 @@ export async function minifyFile(file, outFile) {
   return outfile;
 }
 
+/** @param {string[]} files */
 async function main(files) {
   if (files.length === 0) {
     console.error("usage: node scripts/minify.mjs file1.js [file2.js ...]");

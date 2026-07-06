@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Type-check the Node tooling (scripts, configs, test infra)
+        # tsc with checkJs over the modern ESM tooling only (see tsconfig.json).
+        # The untyped browser core (src/js9/*) is intentionally out of scope.
+        run: npm run typecheck
+
       - name: Build the site (concat + esbuild + all-in-one + docs -> _site/)
         # also runs via the package.json "prepare" hook on npm ci; kept explicit.
         # The built site (_site/) is not committed.
