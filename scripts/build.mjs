@@ -14,7 +14,7 @@
 //
 // Usage: node scripts/build.mjs   (run before/with `npm run docs`; see build)
 
-import { readFile, writeFile, mkdir, copyFile, readdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, copyFile, readdir, rm } from "node:fs/promises";
 import { Buffer } from "node:buffer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -136,6 +136,9 @@ async function main() {
   const pkg = JSON.parse(await readFile(abs("package.json"), "utf8"));
   const version = pkg.version;
   console.log(`building JS9 web app -> ${OUTDIR}/ (v${version}) ...`);
+  // start from a clean output dir: this runs before `npm run docs` (Eleventy),
+  // which does not clean _site/, so deleted/renamed files would otherwise linger
+  await rm(out("."), { recursive: true, force: true });
   await mkdir(out("."), { recursive: true });
 
   // support + plugin concatenations
