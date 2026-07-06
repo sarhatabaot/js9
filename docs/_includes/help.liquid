@@ -71,6 +71,20 @@
     border-radius:6px; padding:3px 10px; font-size:12px; cursor:pointer; transition:opacity .15s; }
   .docsContent .codeWrap:hover .copyBtn, .docsContent .copyBtn:focus-visible { opacity:1; }
   .docsContent .copyBtn:hover { background:rgba(148,163,184,.32); }
+  /* tabbed panels (e.g. the CDN install sources) */
+  .tabs { margin:14px 0; }
+  .tabList { display:flex; gap:4px; border-bottom:1px solid var(--border); }
+  .tabBtn { appearance:none; background:none; border:1px solid transparent; border-bottom:none;
+    padding:7px 14px; font:inherit; font-size:14px; color:var(--muted); cursor:pointer;
+    border-radius:7px 7px 0 0; }
+  .tabBtn:hover:not(:disabled) { color:var(--fg); }
+  .tabBtn[aria-selected="true"] { color:var(--fg); font-weight:600;
+    background:var(--bg); border-color:var(--border); margin-bottom:-1px; }
+  .tabBtn:disabled { opacity:.55; cursor:not-allowed; }
+  .tabBtn .soon { font-size:10px; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--muted); border:1px solid var(--border); border-radius:10px; padding:1px 6px; margin-left:6px; }
+  .tabPanel[hidden] { display:none; }
+  .tabPanel > pre:first-child { margin-top:14px; }
   .helpFooter { margin-top:3em; padding-top:1em; border-top:1px solid var(--border);
     font-size:.85em; color:var(--muted); }
   .helpFooter a { color:var(--muted); }
@@ -161,6 +175,25 @@
     try {
       window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncPf);
     } catch(e){}
+  })();
+</script>
+<script>
+  /* tab panels: click a tab to reveal its panel (disabled tabs are inert) */
+  (function(){
+    document.querySelectorAll("[data-tabs]").forEach(function(group){
+      var tabs = group.querySelectorAll('[role="tab"]');
+      tabs.forEach(function(tab){
+        tab.addEventListener("click", function(){
+          if (tab.disabled) return;
+          tabs.forEach(function(t){
+            var on = t === tab;
+            t.setAttribute("aria-selected", on ? "true" : "false");
+            var panel = document.getElementById(t.getAttribute("aria-controls"));
+            if (panel) panel.hidden = !on;
+          });
+        });
+      });
+    });
   })();
 </script>
 </body>

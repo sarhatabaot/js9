@@ -55,17 +55,44 @@ hand-placed-div approach.
 
 <h3>Installation</h3>
 
-<p>Three ways to get the files:</p>
+<p>Load the files from a CDN, or clone and self-host.</p>
 
 <h4>CDN</h4>
-<pre>&lt;script src="https://cdn.jsdelivr.net/npm/js9-modern/_site/js9-allinone.js"&gt;&lt;/script&gt;
-&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/js9-modern/_site/js9-allinone.css"&gt;</pre>
-<p>The <code>js9-modern</code> package is published experimentally; see the
-repository for the current status.</p>
+<p>Load JS9 straight from a CDN &mdash; no build step. Pick a source:</p>
 
-<h4>npm</h4>
-<pre>npm install js9-modern</pre>
-<p>The built files are under the package's <code>_site/</code> directory.</p>
+<div class="tabs" data-tabs>
+  <div class="tabList" role="tablist" aria-label="CDN source">
+    <button class="tabBtn" type="button" role="tab" id="cdnTabGh"
+            aria-controls="cdnPanelGh" aria-selected="true">GitHub (jsDelivr)</button>
+    <button class="tabBtn" type="button" role="tab" id="cdnTabNpm"
+            aria-controls="cdnPanelNpm" aria-selected="false" disabled
+            title="Available once JS9 is published to npm">npm <span class="soon">soon</span></button>
+  </div>
+
+  <section class="tabPanel" role="tabpanel" id="cdnPanelGh" aria-labelledby="cdnTabGh">
+<pre>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sarhatabaot/js9@v3.10.0/js9-allinone.css"&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/sarhatabaot/js9@v3.10.0/js9-allinone.js"&gt;&lt;/script&gt;</pre>
+    <p>jsDelivr can load any GitHub release, commit, or branch &mdash; set the ref
+    after the <code>@</code>:</p>
+    <ul>
+      <li><code>@v3.10.0</code> &mdash; a tagged release (recommended for production)</li>
+      <li><code>@master</code> &mdash; the tip of a branch</li>
+      <li><code>@1a2b3c4</code> &mdash; an exact commit</li>
+    </ul>
+    <p>
+      Note: jsDelivr serves files committed to the repository at that ref, so a
+      GitHub URL resolves once a release (or commit) includes the built
+      <code>js9-allinone.*</code> bundle. For projects that support it, we
+      recommend the npm source instead.
+    </p>
+  </section>
+
+  <section class="tabPanel" role="tabpanel" id="cdnPanelNpm" aria-labelledby="cdnTabNpm" hidden>
+<pre>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/js9-modern@3.10.0/js9-allinone.css"&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/js9-modern@3.10.0/js9-allinone.js"&gt;&lt;/script&gt;</pre>
+    <p>Available once JS9 is published to npm.</p>
+  </section>
+</div>
 
 <h4>Clone &amp; self-host</h4>
 <pre>git clone https://github.com/sarhatabaot/js9
