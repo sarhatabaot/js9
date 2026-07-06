@@ -32,6 +32,22 @@ const server = http.createServer(async (req, res) => {
     const urlPath = decodeURIComponent(new URL(req.url || "/", "http://x").pathname);
     // Health check for Playwright's webServer readiness probe.
     if (urlPath === "/") { res.writeHead(200, { "Content-Type": "text/plain" }).end("ok"); return; }
+    // Mock endpoints for the native-fetch/jsonp/cgi conversion tests
+    // (tests/e2e/native-fetch.spec.mjs). Dev server only.
+    if (urlPath === "/__mock/echo") {
+      let reqBody = "";
+      for await (const chunk of req) reqBody += chunk;
+      const q = new URL(req.url || "/", "http://x").search;
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end(`method=${req.method} query=${q} body=${reqBody}`);
+      return;
+    }
+    if (urlPath === "/__mock/jsonp") {
+      const cb = new URL(req.url || "/", "http://x").searchParams.get("callback") || "callback";
+      res.writeHead(200, { "Content-Type": "text/javascript" });
+      res.end(`${cb}({"ok":true,"ping":"pong"});`);
+      return;
+    }
     const filePath = path.join(ROOT, path.normalize(urlPath));
     if (!filePath.startsWith(ROOT)) { res.writeHead(403).end(); return; }
     const body = await readFile(filePath);

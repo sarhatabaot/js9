@@ -1258,19 +1258,13 @@ JS9.Display.prototype.loadSession = function(file, opts){
     if( typeof file === "object" ){
 	loadem(file);
     } else {
-	$.ajax({
-	    url: file,
-	    cache: false,
-	    dataType: "json",
-	    mimeType: "application/json",
-	    async: false,
-	    success: (jobj) => {
-		loadem(jobj);
-	    },
-	    error: (jqXHR, textStatus, errorThrown) => {
-		JS9.error(`could not load session: ${file}`, errorThrown);
-	    }
-	});
+	// native sync XHR (jQuery async:false was the same primitive)
+	try{
+	    loadem(JS9.getJSONSync(file));
+	}
+	catch(e){
+	    JS9.error(`could not load session: ${file}`, e);
+	}
     }
     // allow chaining
     return this;

@@ -75,12 +75,10 @@ JS9.Helper.prototype.connect = function(type){
     };
     const connectHelper = (url) => {
 	// connect to helper
-	$.ajax({
-	    url: url,
-	    dataType: "script",
-	    timeout: JS9.globalOpts.htimeout,
-	    cache: true,
-	    success: () => {
+	// load the helper client script (native <script> inject via JS9.loadScript
+	// replaces $.ajax dataType:"script"; the old timeout is not reproduced).
+	JS9.loadScript(url,
+	    () => {
 		// if there is no io object, we didn't really succeed
 		// can happen, for example, in the Jupyter environment
 		if( typeof io === "undefined" ){
@@ -154,20 +152,18 @@ JS9.Helper.prototype.connect = function(type){
 		});
 		this.socket.on("msg", JS9.msgHandler);
 	    },
-	    error: (jqXHR, textStatus, errorThrown) => {
-		failedHelper(textStatus, errorThrown);
-	    }
-	});
+	    () => {
+		failedHelper("helper script load error", null);
+	    });
     };
     // make an "alive" request of the helper (jsonp to avoid CORS rejection)
     const waitForHelper = (eurl, hurl, tries) => {
-	$.ajax({
-	    url: eurl,
-	    dataType: "jsonp",
-	    success: () => {
+	// native JSONP (script + callback) replaces $.ajax dataType:"jsonp"
+	JS9.jsonp(eurl,
+	    () => {
 		connectHelper(hurl);
 	    },
-	    error: () => {
+	    () => {
 		if( --tries > 0 ){
 		    window.setTimeout(() => {
 			waitForHelper(eurl, hurl, tries);
@@ -175,8 +171,7 @@ JS9.Helper.prototype.connect = function(type){
 		} else {
 		    failedHelper();
 		}
-	    }
-	});
+	    });
     };
     // might be establishing a new type
     if( type ){
@@ -293,12 +288,10 @@ JS9.Helper.prototype.send = function(key, obj, cb){
 	    JS9.log("JS9 cgi helper [%s, %s]: %s",
 		    this.type, JSON.stringify(obj), this.url);
         }
-	$.ajax({
-	    url: this.url,
-	    type: this.type.toUpperCase(),
-	    data: obj,
-	    dataType: "text",
-	    success: (data) => {
+	// native fetch replaces $.ajax; jQuery serialized `data` as a query string
+	// (GET) or form body (POST) -> JS9.fetchText mirrors that.
+	JS9.fetchText(this.url, this.type.toUpperCase(), obj,
+	    (data) => {
 		if( typeof data === "string" &&
 		    data.search(JS9.analOpts.epattern) >=0 ){
 		    JS9.log(data);
@@ -307,12 +300,11 @@ JS9.Helper.prototype.send = function(key, obj, cb){
 		    cb(data);
 		}
 	    },
-	    error: (jqXHR, textStatus, errorThrown) => {
+	    (err) => {
 		if( JS9.DEBUG ){
-	            JS9.log(`JS9 helper: ${this.type} failure: ${textStatus} ${errorThrown}`);
+		    JS9.log(`JS9 helper: ${this.type} failure: ${err}`);
 		}
-	    }
-	});
+	    });
 	break;
     case "sock.io":
     case "nodejs":
