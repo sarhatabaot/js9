@@ -87,7 +87,7 @@ if (!Array.prototype.includes){
 // used by setFlip and setRot90
 JS9.getRawCopy = function(oraw, bitpix){
     // make copy
-    let nraw = $.extend(true, {}, oraw);
+    let nraw = JS9.extend(true, {}, oraw);
     nraw.bitpix = bitpix || oraw.bitpix;
     switch(nraw.bitpix){
     case 8:
@@ -320,7 +320,7 @@ JS9.msgHandler = function(msg, cb){
     // look for a public API call
     if( JS9.publics[cmd] ){
 	// check for non-array first arg
-	if( !$.isArray(msg.args) ){
+	if( !Array.isArray(msg.args) ){
 	    msg.args = [msg.args];
 	}
 	// change empty quoted strings to empty strings
@@ -330,7 +330,7 @@ JS9.msgHandler = function(msg, cb){
 	    }
 	}
 	// deep copy of arg array
-	args = $.extend(true, [], msg.args);
+	args = JS9.extend(true, [], msg.args);
 	// get display object (temporarily remove it, if necessary)
 	dobj = getDisplayObject(id, args);
 	// pre-processing
@@ -401,7 +401,7 @@ JS9.msgHandler = function(msg, cb){
 	obj.getDisplayInfo(tdisp);
 	if( msg.args ){
 	    // deep copy of arg array
-	    args = $.extend(true, [], msg.args);
+	    args = JS9.extend(true, [], msg.args);
 	} else if( msg.paramlist ){
 	    args = msg.paramlist.split(/ +/);
 	}
@@ -1002,7 +1002,7 @@ JS9.cleanupFITSFile = function(raw, mode){
 // load an image (jpeg, png, etc)
 JS9.handleImageFile = function(file, options, handler){
     const reader = new FileReader();
-    options = $.extend(true, {}, JS9.fits.options, options);
+    options = JS9.extend(true, {}, JS9.fits.options, options);
     handler = handler || JS9.Load;
     reader.onload = (ev) => {
 	let data, grey, hdu;
@@ -1181,14 +1181,14 @@ JS9.fits2fits = function(display, file, opts, func){
 	    f = JS9.cleanPath(rarr[0]);
 	    if( f === xopts.fits ){
 		// same file (imsection not run)
-		nopts = $.extend(true, {}, opts);
+		nopts = JS9.extend(true, {}, opts);
 	    } else {
 		// new file using imsection
 		// relative path: add install dir prefix
 		if( f.charAt(0) !== "/" ){
 		    f = JS9.InstallDir(f);
 		}
-		nopts = $.extend(true, {}, opts);
+		nopts = JS9.extend(true, {}, opts);
 		// but remove already-used section properties from opts
 		delete nopts.xcen;
 		delete nopts.ycen;
@@ -1643,6 +1643,90 @@ JS9.invertMatrix3 = function(xin){
     xout[2][0] = - (xin[2][0] * xout[0][0] + xin[2][1] * xout[1][0]);
     xout[2][1] = - (xin[2][0] * xout[0][1] + xin[2][1] * xout[1][1]);
     return xout;
+};
+
+// native replacements for the jQuery utility functions JS9 used to call
+// ($.extend / $.inArray / $.isArray -> Array.isArray). These mirror jQuery's
+// semantics exactly (ported from jQuery 3.x, MIT) so the swap is behavior-for-
+// behavior; keeping them in-house removes JS9's reliance on jQuery as a utility
+// library (jQuery is still used for DOM/plugins).
+
+// is obj a plain object ({} or new Object), not a DOM node, array, etc.?
+JS9.isPlainObject = function(obj){
+    let proto, ctor;
+    if( !obj || Object.prototype.toString.call(obj) !== "[object Object]" ){
+	return false;
+    }
+    proto = Object.getPrototypeOf(obj);
+    // objects with no prototype (e.g. Object.create(null)) are plain
+    if( !proto ){
+	return true;
+    }
+    // objects with a prototype are plain iff made by the global Object function
+    ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") &&
+	   proto.constructor;
+    return typeof ctor === "function" &&
+	   Function.prototype.toString.call(ctor) ===
+	   Function.prototype.toString.call(Object);
+};
+
+// merge the contents of two or more objects into the first; a leading boolean
+// true triggers a deep (recursive) merge. Faithful port of jQuery's $.extend.
+JS9.extend = function(...args){
+    let options, name, src, copy, copyIsArray, clone;
+    let target = args[0] || {};
+    let i = 1;
+    const length = args.length;
+    let deep = false;
+    // handle a deep copy situation
+    if( typeof target === "boolean" ){
+	deep = target;
+	target = args[i] || {};
+	i++;
+    }
+    // handle case when target is a string or something (possible in deep copy)
+    if( typeof target !== "object" && typeof target !== "function" ){
+	target = {};
+    }
+    for( ; i < length; i++ ){
+	options = args[i];
+	// only deal with non-null/undefined values
+	if( options == null ){
+	    continue;
+	}
+	// extend the base object
+	for( name in options ){
+	    copy = options[name];
+	    // prevent Object.prototype pollution and never-ending loop
+	    if( name === "__proto__" || target === copy ){
+		continue;
+	    }
+	    src = target[name];
+	    // recurse if we're merging plain objects or arrays
+	    if( deep && copy &&
+		( JS9.isPlainObject(copy) ||
+		  (copyIsArray = Array.isArray(copy)) ) ){
+		if( copyIsArray ){
+		    copyIsArray = false;
+		    clone = src && Array.isArray(src) ? src : [];
+		} else {
+		    clone = src && JS9.isPlainObject(src) ? src : {};
+		}
+		// never move original objects, clone them
+		target[name] = JS9.extend(deep, clone, copy);
+	    } else if( copy !== undefined ){
+		// don't bring in undefined values
+		target[name] = copy;
+	    }
+	}
+    }
+    // return the modified object
+    return target;
+};
+
+// index of elem in arr (or -1); faithful port of jQuery's $.inArray
+JS9.inArray = function(elem, arr, i){
+    return arr == null ? -1 : Array.prototype.indexOf.call(arr, elem, i);
 };
 
 // is this a string representation of a number?
@@ -2350,15 +2434,15 @@ JS9.mergePrefs = function(obj){
 		if( (jtype === otype) || (otype === "string") ){
 		    switch(jtype){
 		    case "object":
-			if( $.isArray(obj[name]) ){
+			if( Array.isArray(obj[name]) ){
 			    // arrays get replaced completely
 			    JS9[name] = obj[name];
 			} else {
 			    // objects get replaced or recursively extended
 			    if( domerge ){
-				$.extend(true, JS9[name], obj[name]);
+				JS9.extend(true, JS9[name], obj[name]);
 			    } else {
-				$.extend(JS9[name], obj[name]);
+				JS9.extend(JS9[name], obj[name]);
 			    }
 			}
 			break;
@@ -2543,7 +2627,7 @@ JS9.parseStaticColors = function(arr){
 	catch(e){ /* empty */ }
     }
     // sanity check
-    if( !$.isArray(arr) ){
+    if( !Array.isArray(arr) ){
 	JS9.error("invalid input for static colors");
     }
     // for each array object
@@ -2556,7 +2640,7 @@ JS9.parseStaticColors = function(arr){
 	    a = arr[i];
 	}
 	// canonical array
-	if( $.isArray(a) ){
+	if( Array.isArray(a) ){
 	    // sanity check for color name
 	    if( !a[0] ){ JS9.error(`no color specified: ${arr[i]}`); }
 	    // color name can be any valid tiny color format
@@ -2727,7 +2811,7 @@ JS9.localAccess = function(file){
     // note to myself: cfitsio uncompresses .gz files into memory, so
     // there is no benefit to having ".gz" in the localTemplates list.
     if( JS9.vsize(tfile) >= 0 &&
-	$.inArray(text, JS9.globalOpts.localTemplates.split(",")) >= 0){
+	JS9.inArray(text, JS9.globalOpts.localTemplates.split(",")) >= 0){
 	if( JS9.DEBUG > 2 ){
 	    JS9.log("local access file: %s", tfile);
 	}

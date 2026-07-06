@@ -560,7 +560,7 @@ JS9.Display.prototype.resize = function(width, height, opts){
 	}
     }
     // change the menubar width, unless explicitly told not to
-    if( $.inArray("JS9Menubar", JS9.globalOpts.resizeDivs) >= 0 &&
+    if( JS9.inArray("JS9Menubar", JS9.globalOpts.resizeDivs) >= 0 &&
 	(JS9.isNull(opts.resizeMenubar) || opts.resizeMenubar) ){
 	pinst = this.pluginInstances.JS9Menubar;
 	if( pinst ){
@@ -568,7 +568,7 @@ JS9.Display.prototype.resize = function(width, height, opts){
 	}
     }
     // change the toolbar width, unless explicitly told not to
-    if( $.inArray("JS9Toolbar", JS9.globalOpts.resizeDivs) >= 0 &&
+    if( JS9.inArray("JS9Toolbar", JS9.globalOpts.resizeDivs) >= 0 &&
 	(JS9.isNull(opts.resizeToolbar) || opts.resizeToolbar) ){
 	pinst = this.pluginInstances.JS9Toolbar;
 	if( pinst ){
@@ -579,7 +579,7 @@ JS9.Display.prototype.resize = function(width, height, opts){
 	}
     }
     // change the colorbar width, unless explicitly told not to
-    if( $.inArray("JS9Colorbar", JS9.globalOpts.resizeDivs) >= 0 &&
+    if( JS9.inArray("JS9Colorbar", JS9.globalOpts.resizeDivs) >= 0 &&
 	(JS9.isNull(opts.resizeColorbar) || opts.resizeColorbar) ){
 	pinst = this.pluginInstances.JS9Colorbar;
 	if( pinst ){
@@ -590,7 +590,7 @@ JS9.Display.prototype.resize = function(width, height, opts){
 	}
     }
     // change the statusbar width, unless explicitly told not to
-    if( $.inArray("JS9Statusbar", JS9.globalOpts.resizeDivs) >= 0 &&
+    if( JS9.inArray("JS9Statusbar", JS9.globalOpts.resizeDivs) >= 0 &&
 	(JS9.isNull(opts.resizeStatusbar) || opts.resizeStatusbar) ){
 	pinst = this.pluginInstances.JS9Statusbar;
 	if( pinst ){
@@ -735,7 +735,7 @@ JS9.Display.prototype.gather = function(opts){
 	    uim.moveToDisplay(this);
 	    // remove grid item
 	    if( el.length > 0 ){
-		j = $.inArray(odisp, JS9.displays);
+		j = JS9.inArray(odisp, JS9.displays);
 		if( j >= 0 ){
 		    JS9.displays.splice(j, 1);
 		}
@@ -1018,7 +1018,7 @@ JS9.Display.prototype.nextImage = function(inc){
 	    continue;
 	}
 	// only images that are not masks, if necessary
-	if( !JS9.globalOpts.nextImageMask && $.inArray(im, masks) >= 0 ){
+	if( !JS9.globalOpts.nextImageMask && JS9.inArray(im, masks) >= 0 ){
 	    continue;
 	}
 	// candidate image
@@ -1092,11 +1092,11 @@ JS9.Display.prototype.loadSession = function(file, opts){
 	obj = objs[im.file] || {};
 	// reconstitute blend state
 	if( obj.blend ){
-	    im.blend = $.extend(true, {}, obj.blend);
+	    im.blend = JS9.extend(true, {}, obj.blend);
 	}
 	// reconstitute tmp values
 	if( obj.tmp ){
-	    im.tmp = $.extend(true, {}, obj.tmp);
+	    im.tmp = JS9.extend(true, {}, obj.tmp);
 	}
 	// reconstitute wcsim state
 	if( obj.wcsim ){
@@ -1108,7 +1108,7 @@ JS9.Display.prototype.loadSession = function(file, opts){
 		layer = obj.layers[i];
 		lname = layer.name;
 		// are regions disabled?
-		if( $.inArray("regions", im.params.disable) >= 0 &&
+		if( JS9.inArray("regions", im.params.disable) >= 0 &&
 		    lname === "regions" ){
 		    continue;
 		}
@@ -1169,7 +1169,7 @@ JS9.Display.prototype.loadSession = function(file, opts){
 	    JS9.error("session does not contain a filename");
 	}
 	// save copy of object so we can edit it
-	obj = $.extend(true, {}, imobj);
+	obj = JS9.extend(true, {}, imobj);
 	// some param info needs to be deleted
 	delete obj.params.display;
 	// unset crosshair (we don't save it or load it)
@@ -1204,7 +1204,7 @@ JS9.Display.prototype.loadSession = function(file, opts){
 	let i, key, cmap, xobj;
 	// restore (and remove) globals
 	if( jobj.globalOpts ){
-	    $.extend(true, JS9.globalOpts, jobj.globalOpts);
+	    JS9.extend(true, JS9.globalOpts, jobj.globalOpts);
 	    delete jobj.globalOpts;
 	}
 	// load colormaps
@@ -1212,7 +1212,7 @@ JS9.Display.prototype.loadSession = function(file, opts){
 	    for(i=0; i<jobj.cmaps.length; i++){
 		cmap = jobj.cmaps[i];
 		if( !cmap.name ){ continue; }
-		if( $.inArray(cmap.name, JS9.globalOpts.topColormaps) >= 0 ){
+		if( JS9.inArray(cmap.name, JS9.globalOpts.topColormaps) >= 0 ){
 		    xobj = {toplevel: true};
 		} else {
 		    xobj = {toplevel: false};
@@ -1321,7 +1321,7 @@ JS9.Display.prototype.createMosaic = function(ims, opts){
     const disp = (hdu, opts) => {
 	let topts, nim;
 	opts = opts || {};
-	topts = $.extend(true, {}, opts);
+	topts = JS9.extend(true, {}, opts);
 	// start the waiting!
 	if( opts.waiting !== false ){
 	    JS9.waiting(true, this);
@@ -1391,7 +1391,7 @@ JS9.Display.prototype.createMosaic = function(ims, opts){
 	    // hopefully, it's the id of an image
 	    ims = [ims];
 	}
-    } else if( !$.isArray(ims) ){
+    } else if( !Array.isArray(ims) ){
 	JS9.error("unknown input type for createMosaic()");
     }
     // sanity check
@@ -1592,7 +1592,7 @@ JS9.Display.prototype.createMosaic = function(ims, opts){
 	// cleanup temp files
 	cleanup();
 	// construct options
-	topts = $.extend(true, {}, JS9.fits.options, opts);
+	topts = JS9.extend(true, {}, JS9.fits.options, opts);
 	// we want the full image
 	topts.image = {xdim: 0, ydim: 0};
 	topts.file = outfile;
