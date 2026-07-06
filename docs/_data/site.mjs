@@ -15,7 +15,7 @@ export default {
 
   // canonical links
   repo: "https://github.com/sarhatabaot/js9",
-  homepage: pkg.homepage, // https://sarhatabaot.net/js9/
+  homepage: pkg.homepage, // https://js9.sarhatabaot.net/
 
   // attribution: JS9 was created and maintained through v3.9 by the original
   // authors; a new maintainer took over from handoverVersion.

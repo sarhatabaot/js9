@@ -3,622 +3,214 @@ permalink: index.html
 templateEngineOverride: liquid
 ---
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!-- JS9 homepage: {{ site.homepage }} -->
-  <meta name="language" content="en">
-  <meta name="author" content="{{ site.maintainer.name }}">
-  <meta name="keywords" content="astronomy astrophysics FITS image display visualization DS9 JS9 WebAssembly">
-  <meta name="description" content="JS9: {{ site.tagline }} (a browser-based FITS viewer).">
-  <meta name="generator" content="JS9 {{ site.version }}">
-
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=Edge;chrome=1" >
+  <script>
+    /* apply the saved theme before paint (no flash of the wrong theme) */
+    (function(){ try { var t = localStorage.getItem("js9-theme");
+      if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    } catch(e){} })();
+  </script>
+  <meta name="description" content="JS9: {{ site.tagline }} — a browser-based FITS viewer (WebAssembly, client-side).">
   <link type="image/x-icon" rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="images/js9-apple-touch-icon.png">
   <link type="text/css" rel="stylesheet" href="js9support.css">
   <link type="text/css" rel="stylesheet" href="js9.css">
-  <link rel="apple-touch-icon" href="images/js9-apple-touch-icon.png">
+  <link rel="stylesheet" href="vendor/highlight.css">
   <script type="text/javascript" src="js9prefs.js"></script>
   <script type="text/javascript" src="js9support.min.js"></script>
   <script type="text/javascript" src="js9.min.js"></script>
   <script type="text/javascript" src="js9plugins.min.js"></script>
-  <style type="text/css">
-      h2 {
-        margin-bottom: 0px;
-      }
-      #myTabsContainer {
-        background: -webkit-gradient(linear, left top, left bottom, color-stop(0.0, #ebebeb, color-stop(1.0, #d5d5d5)));
-        background: -webkit-linear-gradient(top, #ebebeb, #d5d5d5);
-        background: -moz-linear-gradient(top, #ebebeb, #d5d5d5);
-        background: -ms-linear-gradient(top, #ebebeb, #d5d5d5);
-        background: -o-linear-gradient(top, #ebebeb, #d5d5d5);
-        background: linear-gradient(top, #ebebeb, #d5d5d5);
-        color: #4d494d;
-        padding: 7px;
-      }
-      #myTabsContainer .indentmenu ul li a{
-        border-right-width: 6px;
-        border-right-style: solid;
-        -webkit-border-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.0, #ebebeb, color-stop(1.0, #d5d5d5)));
-        -webkit-border-image: -webkit-linear-gradient(top, #ebebeb, #d5d5d5);
-        -moz-border-image: -moz-linear-gradient(top, #ebebeb, #d5d5d5);
-        -o-border-image: -o-linear-gradient(top, #ebebeb, #d5d5d5);
-        border-image: linear-gradient(top, #ebebeb, #d5d5d5);
-        border-image-slice: 1;
-      }
-      #myTabsContainer .indentmenu ul li a.selected{
-          background: #696969;
-      }
-      #myTabsDiv {
-        background: #E9E9E9;
-        border-width: 0px;
-        font: normal 14px Arial;
-        min-height: 548px;
-        height: 100%;
-        width: 450px;
-      }
-      #myAnalysisDiv {
-        background: #E9E9E9;
-        border-width: 0px;
-        overflow: auto;
-      }
-      #myAnalysisResults {
-        padding: 5px;
-        margin:  5px;
-        min-height: 440px;
-      }
-      #myButtonsDiv {
-        background: #E9E9E9;
-        border-width: 1px;
-        border-color: black;
-        padding-top: 5px;
-        font: normal 12px Arial;
-        height: 25px;
-      }
-      #intro, #docs, #demos, #status, #get, #thanks {
-        padding: 10px;
-      }
-      .mytabcontent {
-        max-width: 440px;
-      }
-      .myfooter {
-        font: normal 12px Arial;
-      }
-      .mycontact {
-	text-decoration: none;
-	color: #0000FF
-      }
-      .mycontact1 {
-        font: normal 12px Arial;
-        margin-top:  8px;
-        margin-left: 2px;
-        float: left;
-      }
-      .mycontact2 {
-        font: normal 12px Arial;
-        margin-top:   8px;
-        margin-right: 2px;
-        float: right;
-      }
-      .pluginContainer {
-        padding: 5px;
-        padding-left: 4px;
-        background: #E9E9E9;
-      }
-      .plugin {
-        display: inline-block;
-        width: 210px;
-        height: 210px;
-      }
-      /* http://stephen.io/mediaqueries/ */
-      /* For general ipad layouts */
-      @media only screen
-      and (min-device-width : 768px)
-      and (max-device-width : 1024px) {
-      }
-      /* For general iphone layouts */
-      @media only screen
-      and (min-device-width : 375px)
-      and (max-device-width : 667px) {
-        #myTabsDiv {
-            font: normal 8px Arial;
-        }
-        .myfooter {
-            font: normal 8px Arial;
-        }
-      }
-
+  <title>JS9 &mdash; {{ site.tagline }}</title>
+  <style>
+    :root { --accent:#2b6cb0; --accent-d:#1e4e8c; --ink:#1a202c; --muted:#5a6675;
+      --border:#e2e8f0; --bg:#fff; --bg-soft:#f7fafc; --maxw:1080px; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --accent:#58a6ff; --accent-d:#388bfd;
+        --ink:#e6edf3; --muted:#8b98a5; --border:#30363d; --bg:#0d1117; --bg-soft:#161b22; }
+    }
+    :root[data-theme="dark"] { --accent:#58a6ff; --accent-d:#388bfd;
+      --ink:#e6edf3; --muted:#8b98a5; --border:#30363d; --bg:#0d1117; --bg-soft:#161b22; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--bg);
+      font:16px/1.6 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+    a { color:var(--accent); }
+    .wrap { max-width:var(--maxw); margin:0 auto; padding:0 20px; }
+    /* nav */
+    .nav { position:sticky; top:0; z-index:20; background:var(--bg);
+      border-bottom:1px solid var(--border); }
+    .iconBtn { background:none; border:1px solid var(--border); border-radius:8px;
+      width:34px; height:34px; font-size:16px; cursor:pointer; color:var(--ink); }
+    .iconBtn:hover { border-color:var(--accent); }
+    .nav .wrap { display:flex; align-items:center; gap:20px; height:56px; }
+    .brand { display:flex; align-items:center; gap:8px; font-weight:700;
+      text-decoration:none; color:var(--ink); }
+    .brand img { height:28px; }
+    .nav nav { margin-left:auto; display:flex; gap:22px; }
+    .nav nav a { text-decoration:none; color:var(--muted); font-size:15px; }
+    .nav nav a:hover { color:var(--accent); }
+    /* hero */
+    .hero { text-align:center; padding:56px 0 8px; }
+    .hero h1 { font-size:40px; line-height:1.15; margin:0 0 14px; letter-spacing:-.02em; }
+    .hero p.sub { font-size:19px; color:var(--muted); max-width:640px; margin:0 auto 26px; }
+    .cta { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+    .btn { display:inline-block; padding:11px 22px; border-radius:8px;
+      text-decoration:none; font-weight:600; font-size:15px; border:1px solid var(--border); color:var(--ink); }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .btn.primary:hover { background:var(--accent-d); }
+    .btn:hover { border-color:var(--accent); }
+    /* live editor */
+    .demo { padding:32px 0 8px; }
+    .demo .frame { display:inline-block; padding:10px; background:var(--bg-soft);
+      border:1px solid var(--border); border-radius:12px; }
+    .demo .caption { color:var(--muted); font-size:14px; margin-top:10px; }
+    .center { text-align:center; }
+    /* sections */
+    section.block { padding:44px 0; }
+    section.block h2 { font-size:26px; margin:0 0 18px; text-align:center; }
+    /* quickstart */
+    pre.code { background:#0f172a; color:#e2e8f0; padding:18px 20px; border-radius:10px;
+      overflow:auto; font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      max-width:720px; margin:0 auto; }
+    /* copy-to-clipboard button on the quickstart code block (shown on hover) */
+    .codeWrap { position:relative; max-width:720px; margin:0 auto; }
+    .codeWrap pre.code { max-width:none; margin:0; }
+    .copyBtn { position:absolute; top:8px; right:8px; opacity:0;
+      background:rgba(148,163,184,.18); color:#e2e8f0; border:1px solid rgba(148,163,184,.32);
+      border-radius:6px; padding:3px 10px; font-size:12px; cursor:pointer; transition:opacity .15s; }
+    .codeWrap:hover .copyBtn, .copyBtn:focus-visible { opacity:1; }
+    .copyBtn:hover { background:rgba(148,163,184,.32); }
+    .quick .note { text-align:center; color:var(--muted); margin-top:14px; font-size:14px; }
+    /* features */
+    .features { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+    .feature { border:1px solid var(--border); border-radius:10px; padding:18px 20px; }
+    .feature h3 { margin:0 0 6px; font-size:16px; }
+    .feature p { margin:0; color:var(--muted); font-size:14px; }
+    /* footer */
+    footer.site { border-top:1px solid var(--border); background:var(--bg-soft);
+      color:var(--muted); font-size:14px; padding:28px 0; }
+    footer.site a { color:var(--accent); }
+    @media (max-width:760px){
+      .hero h1{font-size:30px;} .features{grid-template-columns:1fr;}
+      .nav nav{gap:14px;}
+    }
   </style>
-<title>JS9: astronomical image display everywhere</title>
 </head>
 <body>
-    <script type="text/javascript">
-    var aname, im, lastim, lastreg, js9tabs;
-    var ncall = 0;
-    var err = {};
-    var plot, pobj;
-    var running = false;
-    // TODO (revisit later): this homepage analysis demo (the counts / radial /
-    // spectrum / lcurve tabs below) was built for Cassiopeia A X-ray *event*
-    // data. It now preloads the bundled synthetic example (data/example.fits.gz),
-    // which is a plain 2-D image with no energy/time columns, so spectrum and
-    // lcurve won't produce meaningful results (and server-side analysis needs
-    // the helper, which the static site doesn't run). counts/radial are
-    // client-side and work. Consider simplifying this hero to a plain image +
-    // client-side analysis for the static, helper-less deployment.
-    var objs = [
-      {scale: "log", colormap: "viridis", contrast: 3.26, bias: 0.66},
-      {scale: "log", colormap: "magma", contrast: 2.9, bias: 0.72},
-      {scale: "log", colormap: "heat", contrast: 2.1, bias: 0.8},
-      {scale: "log", colormap: "cool", contrast: 3.28, bias: 0.63},
-      {scale: "log", colormap: "inferno", contrast: 2.9, bias: 0.72},
-      {scale: "log", colormap: "b", contrast: 1.97, bias: 0.69},
-      {scale: "log", colormap: "grey", contrast: 3.2, bias: 0.69}
-    ];
-    // this is the callback for all region changes
-    JS9.Regions.opts.onchange = runMyAnalysis;
-    // called when the function changes to redo the last display
-    function redo(){
-      if( lastim && lastreg ){
-        runMyAnalysis(lastim, lastreg);
-      }
-    }
-    // add event handlers to the analysis buttons to execute the specified task
-    // note that jQuery is available automatically
-    function initMyAnalysis(){
-        var idx, obj;
-        $("#counts").on("click", function(evt){aname = "counts"; redo()});
-        $("#radial").on("click", function(evt){aname = "radial"; redo()});
-        $("#spectrum").on("click", function(evt){aname = "spectrum"; redo()});
-        $("#lcurve").on("click", function(evt){aname = "lcurve"; redo()});
-        js9tabs = new ddtabcontent("js9tabs"); //enter ID of Tab Container
-        js9tabs.setpersist(false); //toggle persistence of the tabs' state
-        js9tabs.setselectedClassTarget("link"); //"link" or "linkparent"
-        js9tabs.init();
-        idx = Math.floor(Math.random() * objs.length);
-        obj = $.extend(true, {}, objs[idx]);
-        obj.parentFile = "data/example.fits";
-        JS9.Preload("data/example.fits.gz", obj);
-    }
-    // run analysis on current image, defining a function to display results
-    function runMyAnalysis(im, xreg){
-        var rarr = [];
-        lastim = im;
-        lastreg = xreg;
-        // are we already running?
-        if( running ){
-            return;
-        }
-        // don't run after removing the region
-        if( xreg.mode === "remove" ){
-            return;
-        }
-        // only run on changes to source or background regions
-        if( (xreg.tags.indexOf("source") === -1)     &&
-            (xreg.tags.indexOf("background") === -1) ){
-            return;
-        }
-        // check whether we are in the analysis tab
-        if( js9tabs.subcontentids[js9tabs.currentTabIndex] !== "analysis" ){
-          return;
-        }
-        // make sure there are analysis tasks for this image
-        if( !lastim.analysisPackages && !err[lastim.id] ){
-          err[lastim.id] = true;
-          JS9.error("sorry, no server-side tasks are available for: " +
-                    lastim.id);
-        }
-        // process analysis request
-        if( aname ){
-          switch(aname){
-          case "counts":
-            running = true;
-            JS9.RunAnalysis("counts", null, dispMyAnalysis);
-            break;
-          case "radial":
-            running = true;
-            JS9.RunAnalysis("radialprofile", null, dispMyAnalysis);
-            break;
-          case "spectrum":
-            running = true;
-            JS9.RunAnalysis("energyplot", null, dispMyAnalysis);
-            break;
-          case "lcurve":
-            running = true;
-            JS9.RunAnalysis("timeplot", null, dispMyAnalysis);
-            break;
-          default:
-            alert("unknown analysis task: "+aname);
-            break;
-          }
-        }
-    }
-    // display function passed to JS9.RunAnalysis when the task is complete.
-    function dispMyAnalysis(stdout, stderr, errcode, a){
-      var rdiv = $("#myAnalysisResults");
-      if( !rdiv ){
-        alert("the analysis results area is missing on this web page");
-      }
-      else if( stderr ){
-        alert(stderr);
-      } else {
-       // remove previous contents
-       rdiv.empty();
-       // process return type
-       switch(a.rtype){
-          case "text":
-          // text can just get shoved into the div
-          rdiv.html("<pre>" + stdout + "<\/pre>");
-          break;
-        case "plot":
-          // plot can make use of the already-loaded flot routines
-          // (JS9.plotOpts is defined in js9.js)
-          try{
-	    // retrieve plot object (should contain a data object)
-	    pobj = JSON.parse(stdout);
-            if( pobj && pobj.data ){
-              // destroy previous plot, or else some bindings will remain
-              if( plot && !running ){
-                plot.destroy();
-                plot = null;
-              }
-              // erase explanatory text
-              rdiv.innerHTML = "";
-    	      // plot the data
-	      plot = $.plot(rdiv, [pobj], JS9.plotOpts);
-	    } else {
-              alert("no analysis data returned");
-            }
-          }
-	  catch(e){
-	    alert("can't plot data: "+e+" "+stdout)
-          };
-          break;
-        }
-      }
-      running = false;
-    }
-    // wait until document is really ready to do the init
-    // (using onload can cause a race condition with tabcontent init)
-    $(document).ready(function(){
-        initMyAnalysis();
-    });
-    </script>
-    <table cellspacing="10">
-    <tr valign="top">
-    <td style="text-align:center" colspan="2">
-    <b><font size="+2">
-    JS9: astronomical image display everywhere
-    </font></b>
-    </td>
-    </tr>
-    <tr valign="top">
-    <td>
-    <div class="JS9Menubar"></div>
-    <div class="JS9Toolbar"></div>
-    <div class="JS9"></div>
-    <div style="margin-top: 2px;">
-    <div class="JS9Statusbar"></div>
-    </div>
-    </td>
-    <td>
-    <div id="myTabsContainer">
-    <div id="js9tabs" class="indentmenu">
-    <ul>
-      <li><a href="#" rel="intro" class="selected">Intro</a></li>
-      <li><a href="#" rel="plugins">Plugins</a></li>
-      <li><a href="#" rel="analysis">Analysis</a></li>
-      <li><a href="#" rel="demos">Demos</a></li>
-      <li><a href="#" rel="docs">Help</a></li>
-      <li><a href="#" rel="status">Status</a></li>
-      <li><a href="#" rel="get">Get</a></li>
-      <li><a href="#" rel="thanks">Thanks</a></li>
-    </ul>
-    <br style="clear: left">
-    </div>
-    </div>
 
-    <div id="myTabsDiv">
-    <div id="intro" class="tabcontent mytabcontent">
-      JS9 brings astronomical image display to your browser and desktop:
-      <ul>
-	<li> display <a href='https://fits.gsfc.nasa.gov/fits_documentation.html' target='_blank'>FITS</a> images, tables, data cubes, multi-extension files
-	<li> drag and drop FITS files and urls, PNG and JPEG images
-	<li> retrieve and display data from <a href='help/archives.html' target='_blank'>astronomical archives</a>
-	<li> adjust the colormap and data scaling
-	<li> pan, zoom, and blink images
-        <li> perform image arithmetic, Gaussian smoothing
-	<li> blend images and apply RGB image filters
-	<li> configure mouse buttons and movements, touch events
-	<li> create and manipulate geometric <a href='help/regions.html' target='_blank'>regions of interest</a>
-	<li> extend JS9 using <a href='help/localtasks.html' target='_blank'>plugins</a> and the <a href='help/publicapi.html' target='_blank'>public API</a>
-	<li> perform data analysis (<a href='help/localtasks.html' target='_blank'>local</a> and <a href='help/serverside.html' target='_blank'>server-side</a>)
-	<li> configure and control JS9 via HTML elements in a web page
-	<li> control JS9 <a href='help/extmsg.html' target='_blank'>externally</a>, from a command shell or Python
-	<li> print images, save images and sessions, multiple displays, ...
-      </ul>
-      <p>
-      Drag and drop a FITS astronomical data file onto the display and JS9
-      functionality immediately becomes available: zoom, pan, colormaps,
-      scaling, regions, WCS, image filters, smoothing ...
-      <p>
-      By extending JS9 with the plugin facility and the public API, you
-      can perform local analysis on the displayed image: click
-      the Plugins tab, create a region, move it around ...
-      <p>
-      Images loaded on the server, loaded via proxy (File menu), or uploaded
-      (Analysis menu) all support server-side analysis. Results are
-      displayed in your browser: click the Analysis tab, choose a
-      task, create a region, move it around ...
-      <p>
-      Want a <a class="mycontact" href="js9.html">pristine JS9 display</a>?
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="index.html"><img src="images/js9logo.png" alt="JS9">JS9</a>
+      <nav>
+        <a href="help/start.html">Docs</a>
+        <a href="demos/js9editor.html">Demos</a>
+        <a href="{{ site.repo }}" target="_blank" rel="noopener">GitHub</a>
+        <button id="themeToggle" class="iconBtn" type="button"
+                aria-label="Toggle light/dark theme" title="Toggle light/dark theme">&#9681;</button>
+      </nav>
     </div>
-    <div id="analysis" class="tabcontent mytabcontent">
-      <div id="myButtonsDiv">
-	<input type="radio" name="onchange" id="spectrum" autocomplete="off">Energy Spectrum
-	<input type="radio" name="onchange" id="counts" autocomplete="off">Counts in Regions
-	<input type="radio" name="onchange" id="radial" autocomplete="off">Radial Profile
-	<input type="radio" name="onchange" id="lcurve" autocomplete="off">Light Curve
-      </div>
-      <div id="myAnalysisDiv">
-	<div id="myAnalysisResults">
-	  JS9 can be connected to a
-	  <a href="help/serverside.html" target="_blank">
-	  server-side (back-end) analysis system</a> to run complex
-	  analysis tasks. Text and plot results can be displayed on
-	  the JS9 web page, or new images loaded into JS9. Virtually
-	  any analysis program can be added to the back-end.
-	  <p>
-	  Here is a quick introduction to server-side analysis using regions:
-	  <ul>
-	  <li> Create one or more regions using the JS9 Region menu.
-	  <li> Press the mouse inside a region and drag it to a
-	  desired location. (Use an annulus for radial profiles.)
-	  <li> Resize or rotate the region by clicking to
-	       select it, and then moving one of the handles.
-	  <li> Group regions by pressing the meta key
-	    and using mouse selection. You then can
-	    move/resize/rotate them together.
-	  <li> Choose an analysis to run on the server:
-	  <ul>
-	      <li> Energy Spectrum plots a histogram of the energy
-	      values of photons in the region(s).
-	      <li> Counts in Regions presents a text display of the
-	      number of photons found in the region(s).
-	      <li> Radial Profile plots the number of photons in each
-	      region of an annulus.
-	      <li> Light Curve plots a histogram of the time values
-	      of photons in the region(s).
-	  </ul>
-	  <li> Every time a region changes, the chosen task will run
-	    on the server, and results will be displayed here.
-	  <li> These tasks also can be run from the JS9 Analysis menu.
-          </ul>
-	  See the Plugins tab for a demo of local analysis.
-	</div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <h1>Astronomical image display,<br>everywhere.</h1>
+      <p class="sub">
+        JS9 brings DS9-class FITS viewing and analysis to the browser &mdash;
+        powered by WebAssembly, running client-side, with no server required.
+      </p>
+      <div class="cta">
+        <a class="btn primary" href="help/start.html">Get Started</a>
+        <a class="btn" href="help/user.html">Documentation</a>
       </div>
     </div>
-    <div id="plugins" class="tabcontent mytabcontent">
-    <div class="pluginContainer">
-    Extend JS9 with
-    <a href="help/localtasks.html" target="_blank">Plugins</a>,
-    using the
-    <a href="help/publicapi.html" target="_blank">JS9 Public API</a>
-    to perform event-driven, local analysis. Create a region, move it around ...
-    <p>
-    <table>
-    <tr><td><div class="ImExamRegionStats plugin" data-js9id="JS9"></div></td>
-        <td><div class="ImExam3dPlot plugin" data-js9id="JS9"></div></td></tr>
-    <tr><td><div class="ImExamXProj plugin" data-js9id="JS9"></div></td>
-        <td><div class="ImExamYProj plugin" data-js9id="JS9"></div></td></tr>
-    </table>
+  </section>
+
+  <section class="demo">
+    <div class="wrap center">
+      <div class="frame">
+        <!-- A full live editor, built by JS9.init() from the data-* attributes. -->
+        <div class="JS9Editor"
+             data-image="data/example.fits.gz"
+             data-scale="log"
+             data-colormap="viridis"></div>
+      </div>
+      <div class="caption">
+        A full JS9 editor &mdash; drag on the image, create a region, change the
+        colormap. This one was built with a single
+        <code>&lt;div class="JS9Editor"&gt;</code>.
+      </div>
     </div>
+  </section>
+
+  <section class="block quick">
+    <div class="wrap">
+      <h2>Add it to your page</h2>
+<pre class="code">&lt;link rel="stylesheet" href="js9-allinone.css"&gt;
+&lt;script src="js9-allinone.js"&gt;&lt;/script&gt;
+
+&lt;div id="viewer"&gt;&lt;/div&gt;
+&lt;script&gt;
+  JS9.create("viewer", { image: "myimage.fits.gz", opts: { colormap: "viridis" } });
+&lt;/script&gt;</pre>
+      <p class="note">
+        That's the whole thing. See the
+        <a href="help/start.html">Getting Started</a> guide for installation
+        (CDN / npm / self-host) and layout options.
+      </p>
     </div>
-    <div id="docs" class="tabcontent mytabcontent">
-      <b>JS9 Help Pages:</b>
-      <p>
-      <ul>
-      <li><a href="help/user.html" target="_blank">User Manual</a>
-      <li><a href="help/install.html" target="_blank">Installing JS9</a>
-      <li><a href="help/deployment.html" target="_blank">Deployment Modes: Client-side vs. Helper</a>
-      <li><a href="help/webpage.html" target="_blank">Adding JS9 To a Web Page</a>
-      <li><a href="help/yourdata.html" target="_blank">Adding Data To a Web Page</a>
-      <li><a href="help/localtasks.html" target="_blank">Local Analysis (Plugins) With JS9</a>
-      <li><a href="help/publicapi.html" target="_blank">The JS9 Public API</a>
-      <li><a href="help/helper.html" target="_blank">Adding Server-side (Back-end) Analysis</a>
-      <li><a href="help/serverside.html" target="_blank">Server-side Analysis With JS9</a>
-      <li><a href="help/extmsg.html" target="_blank">External Messaging</a>
-      <li><a href="help/desktop.html" target="_blank">JS9 on the Desktop</a>
-      <li><a href="help/python.html" target="_blank">JS9 with Python and Jupyter</a>
-      <li><a href="help/archives.html" target="_blank">Accessing Data Archives</a>
-      <li><a href="help/preferences.html" target="_blank">Setting Site Preferences</a>
-      <li><a href="help/regions.html" target="_blank">Regions Format</a>
-      <li><a href="help/changelog.html" target="_blank">ChangeLog</a>
-      <li><a href="help/repfile.html" target="_blank">Dealing with Large Files</a>
-      <li><a href="help/memory.html" target="_blank">Dealing with Memory Limitations</a>
-      <li><a href="help/knownissues.html" target="_blank">Known Issues</a>
-      <li><a href="help/securityissues.html" target="_blank">Security Issues</a>
-      </ul>
+  </section>
+
+  <section class="block" style="background:var(--bg-soft);">
+    <div class="wrap">
+      <h2>What it does</h2>
+      <div class="features">
+        <div class="feature"><h3>FITS in the browser</h3><p>Display FITS images, tables, data cubes, and multi-extension files &mdash; drag &amp; drop, PNG/JPEG too.</p></div>
+        <div class="feature"><h3>Client-side engine</h3><p>CFITSIO + WCS compiled to WebAssembly do FITS I/O, coordinates, and image processing at near-native speed &mdash; no server.</p></div>
+        <div class="feature"><h3>Regions</h3><p>Create, edit, import, and export regions of interest, and drive analysis from them.</p></div>
+        <div class="feature"><h3>Analysis</h3><p>Colormaps, scaling, pan/zoom, image arithmetic, smoothing, blending, radial profiles, histograms &mdash; local, with optional server-side tasks.</p></div>
+        <div class="feature"><h3>Extensible</h3><p>Build your own UI with the <a href="help/publicapi.html">public API</a> and <a href="help/localtasks.html">plugins</a>; script it from the shell or Python.</p></div>
+        <div class="feature"><h3>Runs anywhere</h3><p>macOS, Linux, Windows, iPads, and iPhones &mdash; and as a desktop app.</p></div>
+      </div>
+      <p class="center" style="margin-top:26px;">
+        <a class="btn primary" href="help/start.html">Get Started</a>
+      </p>
     </div>
-    <div id="demos" class="tabcontent mytabcontent">
-	<b>web page configuration:</b>
-	<ul class="js9demo">
-	  <li><a href='demos/js9editor.html' target='_blank'>one-call editor (JS9.create)</a>
-	  <li><a href='demos/js9basics.html' target='_blank'>the basics</a>
-	  <li><a href='demos/js9sizes.html' target='_blank'>setting the size of the JS9 display</a>
-	  <li><a href='demos/js9menustyles.html' target='_blank'>menubar styles</a>
-	  <li><a href='demos/js9bespoke.html' target='_blank'>web page control</a>
-	  <li><a href='demos/js9preload.html' target='_blank'>preloading images into JS9</a>
-	</ul>
-	<b>multiple displays:</b>
-	<ul class="js9demo">
-	  <li><a href='demos/js9multi.html' target='_blank'>multiple instances of JS9</a>
-	  <li><a href='demos/js9super.html' target='_blank'>control multiple displays with one menu</a>
-	  <li><a href='demos/js9create.html' target='_blank'>creating a JS9 instance dynamically</a>
-	  <li><a href='demos/js9sync.html' target='_blank'>syncing images in multiple displays</a>
-	</ul>
-	<b>plugins:</b>
-	<ul class="js9demo">
-	  <li><a href='demos/js9plugins.html' target='_blank'>adding plugins to JS9</a>
-	  <li><a href='demos/js9imexam.html' target='_blank'>the imexam plugin</a>
-	  <li><a href='demos/js9panzoom.html' target='_blank'>pan and zoom</a>
-	  <li><a href='demos/js9cat.html' target='_blank'>overlaying catalogs</a>
-	  <li><a href='demos/js9dysel.html' target='_blank'>dynamic selection of displays</a>
-	</ul>
-	<b>colors:</b>
-	<ul class="js9demo">
-	  <li><a href='demos/js9blend.html' target='_blank'>image blending</a>
-	  <li><a href='demos/js9rgb.html' target='_blank'>RGB composite images</a>
-	  <li><a href='demos/js9cmaps.html' target='_blank'>creating new colormaps</a>
-	  <li><a href='demos/js9masks.html' target='_blank'>masks and opacity</a>
-	</ul>
-	<b>data analysis:</b>
-	<ul class="js9demo">
-	  <li><a href='demos/js9analysis.html' target='_blank'>remote data analysis</a>
-	  <li><a href='demos/js9onchange.html' target='_blank'>running tasks when a region changes</a>
-	  <li><a href='demos/js9refresh.html' target='_blank'>image refresh rate for data acquisition</a>
-	</ul>
-	<b>FITS support:</b>
-	<ul class="js9demo">
-	  <li><a href='demos/js9bitpix.html' target='_blank'>displaying different FITS datatypes</a>
-	  <li><a href='demos/js9large.html' target='_blank'>support for large FITS files</a>
-	</ul>
-	<b>not often needed:</b>
-	<ul class="js9demo">
-	  <li><a href='demos/js9allinone.html' target='_blank'>using the all-in-one files</a>
-	</ul>
+  </section>
+
+  <footer class="site">
+    <div class="wrap">
+      <p>
+        {{ site.name }} {{ site.version }} &middot;
+        <a href="{{ site.repo }}" target="_blank" rel="noopener">GitHub</a> &middot;
+        <a href="help/start.html">Docs</a> &middot;
+        <a href="help/credits.html">Credits</a> &middot;
+        {{ site.license }} License
+      </p>
+      <p>
+        Created and maintained through v3.9 by {{ site.originalAuthors }}
+        ({{ site.originalOrg }}); maintained from v{{ site.handoverVersion }} by
+        <a href="{{ site.maintainer.url }}" target="_blank" rel="noopener">{{ site.maintainer.name }}</a>
+        ({{ site.maintainer.org }}).
+      </p>
     </div>
-    <div id="status" class="tabcontent mytabcontent">
-      <b>Recent Public Releases:</b>
-      <p>
-      <b>Release 3.9 (12/13/24)</b> Security/Archive release
-      <p>
-      <b>Release 3.8 (06/21/22)</b> Eric's final release
-      <p>
-      <b>Release 3.7 (05/16/22)</b> Eric's penultimate release
-      <p>
-      <b>Patch Release 3.6.2 (01/03/22)</b> add experimental support for
-      converting event tables to 3D cubes
-      <p>
-      <b>Patch Release 3.6.1 (08/16/21)</b> two bug fixes
-      <p>
-      <b>Release 3.6 (07/30/21)</b> improvements to regions, including
-      graphical editing of annuli
-      <p>
-      <b>Release 3.5 (06/01/21)</b> remove long-deprecated fits2png
-      support and improve display of png/jpeg files
-      <p>
-      <b>Release 3.4 (05/05/21)</b> lots of work on regions, including
-      non-transient groups and boolean selections
-      <p>
-      <b>Release 3.3 (12/14/20)</b> update three important modules
-      (emscripten, socket.io, fabric.js), along with a few bug fixes
-      <p>
-      <b>Release 3.2 (11/06/20)</b> mainly changes to support the
-      upcoming desktop Voyager app, but also a few bug fixes
-      <p>
-      For more details, see the <a href="help/changelog.html" target="_blank">ChangeLog</a>.
-      <p>
-      JS9 is distributed under the terms of The MIT License.
-    </div>
-    <div id="get" class="tabcontent mytabcontent">
-      <b>Get JS9</b> from GitHub:
-      <ul>
-      <li> <a href="{{ site.repo }}" target="_blank" rel="noopener noreferrer">JS9 on GitHub</a>
-      </ul>
-      Clone the repo, install dependencies, and build/serve the site:
-      <pre>
-    git clone {{ site.repo }}
-    cd js9
-    npm install
-    npm run serve
-      </pre>
-      See <a href="help/install.html" target="_blank">Installing JS9</a> and
-      <a href="help/deployment.html" target="_blank">Deployment Modes</a>
-      (static/client-side vs. the Node helper) for details.
-      <p>
-      The <b>pyjs9 Python interface</b> is available on GitHub:
-      <ul>
-      <li> <a href="https://github.com/ericmandel/pyjs9" target="_blank" rel="noopener noreferrer">pyjs9 on GitHub</a>
-      </ul>
-      It supports
-      <a href='help/extmsg.html' target='_blank'>communication</a>
-      with JS9 using the
-      <a href='help/publicapi.html' target='_blank'>public API</a>.
-    </div>
-    <div id="thanks" class="tabcontent mytabcontent">
-      <font size="-1">
-      We gratefully acknowledge the technologies that power JS9:
-      <ul>
-      <li> HTML5 for image display and most everything
-      <li> jquery for programming ease (jquery.com)
-      <li> emscripten for C-to-JavaScript (emscripten.org)
-      <li> fabric.js for 2D graphics (fabricjs.com)
-      <li> dynamic drive for light windows (www.dynamicdrive.com)
-      <li> flot for plotting (www.flotcharts.org/)
-      <li> swis for jquery.contextMenu (swisnl.github.io/)
-      <li> arrive.js for MutationObserver (github.com/uzairfarooq/arrive)
-      <li> spin.js for spinner support (spin.js.org/)
-      <li> Marc J Schmidt for CSS element queries (github.com/marcj/css-element-queries)
-      <li> HEASARC for CFITSIO (heasarc.gsfc.nasa.gov/fitsio/)
-      <li> IPAC for Montage (montage.ipac.caltech.edu/)
-      <li> SAO/TDC for WCS lib (tdc-www.harvard.edu/wcstools/)
-      <li> Mark Calabretta for HEALPix (www.atnf.csiro.au/people/mcalabre)
-      </ul>
-      </font>
-      <p>
-      With important suggestions (and sometimes code) from:
-      <font size="-1">
-      <ul>
-      <li> Doug Burke, CfA (research-level testing)
-      <li> Brian Cherinka, JHU (multi-extension FITS, data cubes)
-      <li> Joseph DePasquale, STScI (image blending techniques)
-      <li> Karl Glazebrook, Swinburne (iPad support)
-      <li> Kenny Glotfelty, CfA (toolbar and toolbar icons)
-      <li> Matias Carrasco Kind, NCSA (Jupyter support)
-      <li> Kathy Lestition, CfA (EPO)
-      <li> Briehan Lombaard SAAO (telescope control)
-      <li> John Roll, Facebook (design philosophy, analysis plugins)
-      <li> Maria Henar Sarmiento, ESA (research-level testing)
-      <li> Pat Slane, CfA (needs of research vs. education)
-      <li> Oleg Smirnov, Rhodes University (Jupyter, large file support)
-      <li> The Science Education Department, CfA (EPO)
-      <li> Marwan Ali albahar, Umm Alqura University (security issues)
-      </ul>
-      </font>
-      <p>
-      Funded by
-      <a href="http://www.si.edu" target="_blank" rel="noopener noreferrer">Smithsonian Institution</a>,
-      the <a href="http://chandra.harvard.edu" target="_blank" rel="noopener noreferrer">Chandra X-ray Science Center</a> (NAS8-03060),
-      and
-      <a href="https://universe-of-learning.org/" target="_blank" rel="noopener noreferrer">NASA's Universe of Learning</a> (STScI-509913).
-    </div>
-    </div>
-    <div class="mycontact1">
-    Source code <a class="mycontact" href="{{ site.repo }}" target="_blank" rel="noopener noreferrer">@GitHub</a>
-    </div>
-    </td>
-    </tr>
-    <tr>
-    <td style="text-align:center" colspan="2">
-    <div class="myfooter">
-      <a href="{{ site.repo }}" class="navfooter" target="_blank" rel="noopener noreferrer">GitHub</a>&nbsp;|&nbsp;
-      <a href="help/user.html" class="navfooter" target="_blank">Docs</a>&nbsp;|&nbsp;
-      {{ site.license }} License
-    </div>
-    </td>
-    </tr>
-    <tr>
-    <td style="text-align:center" colspan="2">
-    <div class="myfooter">
-      Created and maintained through v3.9 by {{ site.originalAuthors }} ({{ site.originalOrg }});
-      maintained from v{{ site.handoverVersion }} by
-      <a href="{{ site.maintainer.url }}" class="mycontact" target="_blank" rel="noopener noreferrer">{{ site.maintainer.name }}</a>
-      ({{ site.maintainer.org }}).
-    </div>
-    </td>
-    </tr>
-    </table>
+  </footer>
+
+  <script src="vendor/highlight.js"></script>
+  <script>
+    (function(){
+      var root = document.documentElement, b = document.getElementById("themeToggle");
+      function effective(){
+        return root.getAttribute("data-theme") ||
+          (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      }
+      if (b) b.addEventListener("click", function(){
+        var next = effective() === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        try { localStorage.setItem("js9-theme", next); } catch(e){}
+      });
+    })();
+  </script>
 </body>
 </html>
