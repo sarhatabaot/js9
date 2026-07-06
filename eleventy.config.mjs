@@ -22,6 +22,8 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "docs/demos/data": "demos/data" });
   eleventyConfig.addPassthroughCopy({ "docs/data": "data" });
   eleventyConfig.addPassthroughCopy({ "docs/favicon.ico": "favicon.ico" });
+  // GitHub Pages custom domain (js9.sarhatabaot.net) -> served from _site/CNAME
+  eleventyConfig.addPassthroughCopy({ "docs/CNAME": "CNAME" });
 
   return {
     dir: { input: "docs", output: "_site", includes: "_includes" },

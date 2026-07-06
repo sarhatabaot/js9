@@ -9,7 +9,7 @@ with no server at all.
 This is a **modernized fork** of the original JS9. See
 [Who's responsible?](#whos-responsible) for the attribution and handover.
 
-- Website / live demo: <https://sarhatabaot.net/js9/>
+- Website / live demo: <https://js9.sarhatabaot.net/>
 - Source: <https://github.com/sarhatabaot/js9>
 
 ## What does it do?
@@ -26,11 +26,11 @@ This is a **modernized fork** of the original JS9. See
 
 ## Try it
 
-Go to the [JS9 website](https://sarhatabaot.net/js9/) and drag a
+Go to the [JS9 website](https://js9.sarhatabaot.net/) and drag a
 [FITS](https://fits.gsfc.nasa.gov/) file onto the display. You can also pass a
 remote file and display parameters in the URL:
 
-    https://sarhatabaot.net/js9/js9.html?url=https://path/to/image.fits.gz&colormap=cool
+    https://js9.sarhatabaot.net/js9.html?url=https://path/to/image.fits.gz&colormap=cool
 
 ## Install / run locally
 
@@ -49,7 +49,7 @@ Other scripts:
 
 JS9 supports two deployment modes — **static/client-side** (no server; WASM does
 the work) and a **Node helper** (adds server-side analysis, a CORS proxy, and
-file saving). See [Deployment Modes](https://sarhatabaot.net/js9/help/deployment.html)
+file saving). See [Deployment Modes](https://js9.sarhatabaot.net/help/deployment.html)
 to choose. To run the helper:
 
     node server/js9Helper.js
@@ -76,7 +76,7 @@ JS9 is distributed under the terms of the MIT License.
 ## Release history
 
 Full details are in the
-[ChangeLog](https://sarhatabaot.net/js9/help/changelog.html). In brief: the
+[ChangeLog](https://js9.sarhatabaot.net/help/changelog.html). In brief: the
 original authors released JS9 through **v3.9** (December 2024); this fork
 continues from **v3.10**, beginning with a tooling/modernization pass (Node
 build, esbuild, Eleventy docs, Playwright tests) before further code changes.

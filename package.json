@@ -74,7 +74,7 @@
   "bugs": {
     "url": "https://github.com/sarhatabaot/js9/issues"
   },
-  "homepage": "https://sarhatabaot.net/js9/",
+  "homepage": "https://js9.sarhatabaot.net/",
   "devDependencies": {
     "@11ty/eleventy": "^3.1.6",
     "@playwright/test": "^1.61.1",
