@@ -188,7 +188,7 @@ JS9.SyncUI.setCheckboxes = function(im){
 	for(i=0; i<syncops.length; i++){
 	    // get the op
 	    op = syncops[i];
-	    if( $.isArray(im.syncs[op]) ){
+	    if( Array.isArray(im.syncs[op]) ){
 		// turn on the checkbox associated with this op
 		pinst.syncContainer
 		    .find(".JS9SyncUIOpCheck")

@@ -697,12 +697,12 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 	        case "annulus":
 		    for ( j = 0; j < reg.radii.length; j++ ) {
 		        if ( reg.radii[j] !== 0.0 ) {
-			    reply[regno-1] = $.extend($.extend({}, reg), { regno: regno++, shape: "circle", radius: reg.radii[j] });
+			    reply[regno-1] = JS9.extend(JS9.extend({}, reg), { regno: regno++, shape: "circle", radius: reg.radii[j] });
 		        }
 		    }
 	     	    break;
 	        default:
-		    reply[regno-1] = $.extend({ regno: regno++ }, reg);
+		    reply[regno-1] = JS9.extend({ regno: regno++ }, reg);
 		    break;
 	        }
 	    }

@@ -363,7 +363,7 @@ JS9.Toolbar.init = function(width, height){
     // add tools not in the globalOpts to the bottom of the list
     for(i=0; i<JS9.Toolbar.tools.length; i++){
 	tool = JS9.Toolbar.tools[i];
-	if( $.inArray(tool.name, JS9.globalOpts.toolBar) < 0 ){
+	if( JS9.inArray(tool.name, JS9.globalOpts.toolBar) < 0 ){
 	    JS9.Toolbar.addTool.call(this, tool);
 	}
     }
@@ -422,7 +422,7 @@ JS9.mkPublic("SetToolbar", function(...args){
 	JS9.Toolbar.tools.push(arg1);
 	// reinit toolbar
 	reinit();
-    } else if( $.isArray(arg1) ){
+    } else if( Array.isArray(arg1) ){
 	// array of new tools
 	for(i=0; i<arg1.length; i++){
 	    JS9.Toolbar.tools.push(arg1[i]);

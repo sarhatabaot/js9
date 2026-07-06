@@ -97,7 +97,7 @@ JS9.Menubar.getDisplays = function(mode, key){
     if( this.id.search(JS9.SUPERMENU) >= 0 && !key.match(/^super_/) ){
 	if( mode !== "all" && this.selectedDisplay ){
 	    // make sure display still exists
-	    if( $.inArray(this.selectedDisplay, JS9.displays) >= 0 ){
+	    if( JS9.inArray(this.selectedDisplay, JS9.displays) >= 0 ){
 		return [this.selectedDisplay];
 	    }
 	    this.selectedDislay = null;
@@ -140,7 +140,7 @@ JS9.Menubar.onclick = function(disp){
     for(i=0; i<JS9.supermenus.length; i++){
 	supermenu = JS9.supermenus[i];
 	arr = JS9.Menubar.getDisplays.call(supermenu, "all");
-	if( ($.inArray(disp, arr) >= 0) || (disp === "all") ){
+	if( (JS9.inArray(disp, arr) >= 0) || (disp === "all") ){
 	    if( JS9.bugs.webkit_resize ){
 		$(".JS9").find(".JS9Image").removeClass("JS9Highlight");
 	    } else {
@@ -204,7 +204,7 @@ JS9.Menubar.createMenus = function(){
 	    for( key of Object.keys(gkeyActions) ){
 		JS9.Menubar.rkeyMap[gkeyActions[key]] = key;
 	    }
-	    JS9.Menubar.keyActions = $.extend(true, {}, gkeyActions);
+	    JS9.Menubar.keyActions = JS9.extend(true, {}, gkeyActions);
 	}
 	if( JS9.notNull(act) && JS9.Menubar.rkeyMap ){
 	    key = JS9.Menubar.rkeyMap[act];
@@ -668,7 +668,7 @@ JS9.Menubar.createMenus = function(){
 			let j, s, t, kid, unew, uim;
 			const udisp = val;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			if( udisp ){
@@ -984,7 +984,7 @@ JS9.Menubar.createMenus = function(){
 			const udisp = val;
 			const uim = udisp.image;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			switch(key){
@@ -1115,7 +1115,7 @@ JS9.Menubar.createMenus = function(){
 		    const keycode = e.which || e.keyCode;
 		    const vdisp = val;
 		    // make sure display is still valid
-		    if( $.inArray(vdisp, JS9.displays) < 0 ){
+		    if( JS9.inArray(vdisp, JS9.displays) < 0 ){
 			return;
 		    }
 		    switch( keycode ){
@@ -1167,7 +1167,7 @@ JS9.Menubar.createMenus = function(){
 		    const keycode = e.which || e.keyCode;
 		    const vdisp = val;
 		    // make sure display is still valid
-		    if( $.inArray(vdisp, JS9.displays) < 0 ){
+		    if( JS9.inArray(vdisp, JS9.displays) < 0 ){
 			return;
 		    }
 		    switch( keycode ){
@@ -1333,7 +1333,7 @@ JS9.Menubar.createMenus = function(){
 			const udisp = val;
 			const uim = udisp.image;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			switch(key){
@@ -1483,7 +1483,7 @@ JS9.Menubar.createMenus = function(){
 		    const vdisp = val;
 		    const vim = vdisp.image;
 		    // make sure display is still valid
-		    if( $.inArray(vdisp, JS9.displays) < 0 ){
+		    if( JS9.inArray(vdisp, JS9.displays) < 0 ){
 			return;
 		    }
 		    switch( keycode ){
@@ -1506,7 +1506,7 @@ JS9.Menubar.createMenus = function(){
 		    const vdisp = val;
 		    const vim = vdisp.image;
 		    // make sure display is still valid
-		    if( $.inArray(vdisp, JS9.displays) < 0 ){
+		    if( JS9.inArray(vdisp, JS9.displays) < 0 ){
 			return;
 		    }
 		    switch( keycode ){
@@ -1694,7 +1694,7 @@ JS9.Menubar.createMenus = function(){
 			const udisp = val;
 			const uim = udisp.image;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			if( uim ){
@@ -1829,7 +1829,7 @@ JS9.Menubar.createMenus = function(){
 		    const vdisp = val;
 		    const vim = vdisp.image;
 		    // make sure display is still valid
-		    if( $.inArray(vdisp, JS9.displays) < 0 ){
+		    if( JS9.inArray(vdisp, JS9.displays) < 0 ){
 			return;
 		    }
 		    switch( keycode ){
@@ -1911,7 +1911,7 @@ JS9.Menubar.createMenus = function(){
 			const udisp = val;
 			const uim = udisp.image;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			if( uim ){
@@ -2002,7 +2002,7 @@ JS9.Menubar.createMenus = function(){
 		    const vdisp = val;
 		    const vim = vdisp.image;
 		    // make sure display is still valid
-		    if( $.inArray(vdisp, JS9.displays) < 0 ){
+		    if( JS9.inArray(vdisp, JS9.displays) < 0 ){
 			return;
 		    }
 		    switch( keycode ){
@@ -2124,7 +2124,7 @@ JS9.Menubar.createMenus = function(){
 			const udisp = val;
 			const uim = udisp.image;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			switch(key){
@@ -2358,7 +2358,7 @@ JS9.Menubar.createMenus = function(){
 			const udisp = val;
 			const uim = udisp.image;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			if( uim ){
@@ -2487,7 +2487,7 @@ JS9.Menubar.createMenus = function(){
 		    const vdisp = val;
 		    const vim = vdisp.image;
 		    // make sure display is still valid
-		    if( $.inArray(vdisp, JS9.displays) < 0 ){
+		    if( JS9.inArray(vdisp, JS9.displays) < 0 ){
 			return;
 		    }
 		    switch( keycode ){
@@ -2657,7 +2657,7 @@ JS9.Menubar.createMenus = function(){
 			const udisp = val;
 			const uim = udisp.image;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			if( uim ){
@@ -2769,7 +2769,7 @@ JS9.Menubar.createMenus = function(){
 		    const vdisp = val;
 		    const vim = vdisp.image;
 		    // make sure display is still valid
-		    if( $.inArray(vdisp, JS9.displays) < 0 ){
+		    if( JS9.inArray(vdisp, JS9.displays) < 0 ){
 			return;
 		    }
 		    switch( keycode ){
@@ -2922,7 +2922,7 @@ JS9.Menubar.createMenus = function(){
 			const udisp = val;
 			const uim = udisp.image;
 			// make sure display is still valid
-			if( $.inArray(udisp, JS9.displays) < 0 ){
+			if( JS9.inArray(udisp, JS9.displays) < 0 ){
 			    return;
 			}
 			// first look for a plugin -- no image rquired

@@ -196,8 +196,8 @@ JS9.ScaleLimits.doplot = function(im){
     let dist, distmin, distmax, ntick, tickinc;
     const dmin = im.raw.dmin;
     const drange = im.raw.dmax - im.raw.dmin;
-    const pobj =  $.extend(true, {}, JS9.ScaleLimits.dataOpts);
-    const popts = $.extend(true, {}, JS9.ScaleLimits.plotOpts);
+    const pobj =  JS9.extend(true, {}, JS9.ScaleLimits.dataOpts);
+    const popts = JS9.extend(true, {}, JS9.ScaleLimits.plotOpts);
     const gettickinc = (datarange) => {
 	let tickinc;
 	if( datarange < 10 ){
