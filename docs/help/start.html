@@ -1,0 +1,96 @@
+---
+title: "Introduction"
+---
+<h2>Getting Started with JS9</h2>
+
+<p>
+JS9 brings the astronomical image display and analysis of
+<a href="https://sites.google.com/cfa.harvard.edu/saoimageds9" target="_blank" rel="noopener">DS9</a>
+to the browser. FITS I/O, WCS, and image processing run client-side in
+WebAssembly, so display and much of the analysis work with no server at all.
+</p>
+
+<p>There are two ways to use JS9:</p>
+<ul>
+  <li><b>The editor</b> &mdash; a complete image viewer + analysis UI you drop
+      onto a page with one call.</li>
+  <li><b>The library</b> &mdash; the JS9 public API, to drive JS9 from your own
+      interface and scripts.</li>
+</ul>
+
+<h3>Quick start</h3>
+
+<p>Include the JS9 files, add an empty <code>&lt;div&gt;</code>, and call
+<code>JS9.create()</code> with its id:</p>
+
+<pre>
+&lt;link rel="stylesheet" href="js9-allinone.css"&gt;
+&lt;script src="js9-allinone.js"&gt;&lt;/script&gt;
+
+&lt;div id="viewer"&gt;&lt;/div&gt;
+&lt;script&gt;
+  JS9.create("viewer", {
+    image: "myimage.fits.gz",
+    opts: { colormap: "viridis", scale: "log" }
+  });
+&lt;/script&gt;
+</pre>
+
+<p>
+That builds a full editor inside <code>#viewer</code> and loads your image.
+Prefer no script? Use the declarative form:
+</p>
+
+<pre>
+&lt;div class="JS9Editor" data-image="myimage.fits.gz" data-colormap="viridis"&gt;&lt;/div&gt;
+</pre>
+
+<p>
+Pass <code>layout: "viewer"</code> or <code>"minimal"</code> for a lighter UI, and
+toggle individual parts (<code>menubar</code>, <code>toolbar</code>,
+<code>colorbar</code>, <code>panner</code>&hellip;). See
+<a href="webpage.html">Add JS9 to a Web Page</a> for the layouts and the classic
+hand-placed-div approach.
+</p>
+
+<h3>Installation</h3>
+
+<p>Three ways to get the files:</p>
+
+<h4>CDN</h4>
+<pre>&lt;script src="https://cdn.jsdelivr.net/npm/js9-modern/_site/js9-allinone.js"&gt;&lt;/script&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/js9-modern/_site/js9-allinone.css"&gt;</pre>
+<p>The <code>js9-modern</code> package is published experimentally; see the
+repository for the current status.</p>
+
+<h4>npm</h4>
+<pre>npm install js9-modern</pre>
+<p>The built files are under the package's <code>_site/</code> directory.</p>
+
+<h4>Clone &amp; self-host</h4>
+<pre>git clone https://github.com/sarhatabaot/js9
+cd js9
+npm install        # also builds the deployable site into _site/
+npm run serve      # preview at http://localhost:8080</pre>
+<p>Copy the built files to your web server: either the single-file
+<code>js9-allinone.js</code> + <code>js9-allinone.css</code>, or the modular
+<code>js9support.min.js</code>, <code>js9.min.js</code>,
+<code>js9plugins.min.js</code>, <code>js9.css</code>, plus the WebAssembly engine
+(<code>astroem.js</code>, <code>astroemw.js</code>, <code>astroemw.wasm</code>).</p>
+
+<h3>Deployment modes</h3>
+
+<p>
+JS9 runs <b>static / client-side</b> (no server &mdash; WebAssembly does the work),
+or with a <b>Node helper</b> that adds server-side analysis, a CORS proxy, and
+file saving. Most sites start static. See
+<a href="deployment.html">Deployment Modes</a> to choose.
+</p>
+
+<h3>Next steps</h3>
+<ul>
+  <li><a href="webpage.html">Add JS9 to a Web Page</a> &mdash; layouts, the editor, and presets</li>
+  <li><a href="user.html">User Manual</a> &mdash; the full feature tour</li>
+  <li><a href="publicapi.html">Public API</a> &mdash; control JS9 from your own code</li>
+  <li><a href="regions.html">Regions</a> &mdash; create and analyze regions of interest</li>
+</ul>

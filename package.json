@@ -43,8 +43,9 @@
     "test:quick": "build/quicktest build/i800400.fits.gz",
     "typecheck": "tsc -p tsconfig.json",
     "prepare": "npm run build",
-    "build": "node scripts/build.mjs && npm run docs",
+    "build": "node scripts/build.mjs && npm run docs && npm run search",
     "docs": "eleventy",
+    "search": "pagefind --site _site",
     "serve": "npm run build && eleventy --serve"
   },
   "engines": {
@@ -81,6 +82,7 @@
     "esbuild": "^0.28.1",
     "minimist": "^1.2.7",
     "open": "^8.2.1",
+    "pagefind": "^1.5.2",
     "ps-list": "^7.2.0",
     "rimraf": "^3.0.2",
     "socket.io": "^4.5.4",
