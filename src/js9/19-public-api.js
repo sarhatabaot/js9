@@ -2092,6 +2092,97 @@ JS9.mkPublic("AddDivs", function(...args){
     JS9.instantiatePlugins();
 });
 
+// named editor layouts (presets): ordered lists of components. User-extensible
+// -- add to or edit JS9.Layouts to define your own "looks".
+JS9.Layouts = {
+    // the full editor: menus, tools, image, colorbar, and status readout
+    full:    ["menubar", "toolbar", "display", "colorbar", "statusbar"],
+    // just the image display
+    minimal: ["display"]
+};
+
+// markup generators per component. The plugin div id is displayId + a suffix,
+// which is how AddDivs/instantiatePlugins bind a plugin to its display.
+JS9.createParts = {
+    menubar:   (id, w) => sprintf("<div class='JS9Menubar' id='%sMenubar' data-width=%s></div>", id, w),
+    toolbar:   (id, w) => sprintf("<div class='JS9Toolbar' id='%sToolbar' data-width=%s></div>", id, w),
+    display:   (id, w, h) => sprintf("<div class='JS9' id='%s' data-width=%s data-height=%s></div>", id, w, h),
+    colorbar:  (id, w) => sprintf("<div class='JS9Colorbar' id='%sColorbar' data-width=%s></div>", id, w),
+    statusbar: (id, w) => sprintf("<div class='JS9Statusbar' id='%sStatusbar' data-width=%s></div>", id, w),
+    panner:    (id) => sprintf("<div class='JS9Panner' id='%sPanner'></div>", id),
+    magnifier: (id) => sprintf("<div class='JS9Magnifier' id='%sMagnifier'></div>", id)
+};
+
+// Create a full JS9 editor inside a container with a single call:
+//   JS9.create("viewer");                          // full editor, sane defaults
+//   JS9.create("viewer", {layout: "minimal"});     // just the image display
+//   JS9.create("viewer", {toolbar: false, panner: true,
+//                         colormap: "viridis", image: "data/example.fits.gz"});
+// target: a container element or its id. All opts are optional:
+//   layout   - a JS9.Layouts preset name (default "full")
+//   <part>   - booleans (menubar/toolbar/colorbar/statusbar/panner/magnifier)
+//              to add/remove a component on top of the preset
+//   id       - the display id (default: the container id, else generated)
+//   width/height - display size (default JS9.WIDTH/HEIGHT)
+//   image|src|url - a FITS file to preload
+//   colormap/scale/contrast/bias/zoom/flip/rot90/rotate - applied to the preload
+// Returns the display id. NB: the chrome (menubar/toolbar/...) requires the
+// plugins bundle (js9plugins.js or the all-in-one) to be loaded.
+JS9.create = function(target, opts){
+    let el, id, w, h, comps, html, loadopts, src, i, name;
+    const parts = ["menubar", "toolbar", "colorbar",
+		   "statusbar", "panner", "magnifier"];
+    opts = opts || {};
+    // resolve the container element
+    el = (typeof target === "string") ? document.getElementById(target) : target;
+    if( !el ){
+	JS9.error(`JS9.create: no element for target: ${target}`);
+	return undefined;
+    }
+    // unique display id: opts.id, else the container's id, else generated
+    id = opts.id || el.id ||
+	 `JS9Display_${JS9.create._n = (JS9.create._n || 0) + 1}`;
+    // display size (data-width/height drive it; default to the standard size)
+    w = opts.width  || JS9.WIDTH;
+    h = opts.height || JS9.HEIGHT;
+    // resolve the layout preset into an ordered component list (a copy)
+    comps = (JS9.Layouts[opts.layout] || JS9.Layouts.full).slice();
+    // apply per-component add/remove overrides
+    for(i=0; i<parts.length; i++){
+	name = parts[i];
+	if( opts[name] === true && comps.indexOf(name) < 0 ){
+	    comps.push(name);
+	}
+	if( opts[name] === false ){
+	    comps = comps.filter((c) => c !== name);
+	}
+    }
+    // the image display is mandatory
+    if( comps.indexOf("display") < 0 ){
+	comps.push("display");
+    }
+    // build the markup, in component order
+    html = comps
+	.map((c) => (JS9.createParts[c] ? JS9.createParts[c](id, w, h) : ""))
+	.join("\n");
+    // inject into the container (replaces any existing content)
+    el.innerHTML = html;
+    // register the display and instantiate its plugins (wires the bars by id)
+    JS9.AddDivs(id);
+    // optionally preload an image, passing common display opts through
+    src = opts.image || opts.src || opts.url;
+    if( src ){
+	loadopts = JS9.extend(true, {}, opts.opts);
+	["colormap", "scale", "contrast", "bias", "zoom", "flip", "rot90",
+	 "rotate"].forEach((k) => {
+	    if( opts[k] !== undefined ){ loadopts[k] = opts[k]; }
+	});
+	JS9.Load(src, loadopts, {display: id});
+    }
+    // return the display id for reference
+    return id;
+};
+
 // instantiate plugins when $(document).ready fires before scripts are loaded,
 // e.g., Require.js
 JS9.mkPublic("InstantiatePlugins", function(){

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link type="image/x-icon" rel="shortcut icon" href="../favicon.ico">
+  <link type="text/css" rel="stylesheet" href="../js9support.css">
+  <link type="text/css" rel="stylesheet" href="../js9.css">
+  <script type="text/javascript" src="../js9prefs.js"></script>
+  <script type="text/javascript" src="../js9support.min.js"></script>
+  <script type="text/javascript" src="../js9.min.js"></script>
+  <script type="text/javascript" src="../js9plugins.js"></script>
+  <title>JS9 Demo: one-call editor (JS9.create)</title>
+  <style type="text/css">
+    body { font: 14px Arial, sans-serif; margin: 20px; }
+    h1 { font-size: 20px; }
+    pre { background: #f4f4f4; padding: 8px; border-radius: 4px; display: inline-block; }
+    .row { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 10px; }
+    .col h2 { font-size: 15px; }
+  </style>
+</head>
+<body>
+  <h1>JS9.create: a full editor in one call</h1>
+  <p>
+    Include the JS9 files, add an empty <code>&lt;div&gt;</code>, and call
+    <code>JS9.create()</code> with the container's id. No hand-placed menubar/
+    toolbar/display divs, and no required configuration &mdash; override a default
+    only if you want to.
+  </p>
+
+  <div class="row">
+    <div class="col">
+      <h2>Full editor (default layout)</h2>
+      <pre>JS9.create("viewer", {
+  image: "../data/example.fits.gz",
+  opts: { scale: "log", colormap: "viridis" }
+});</pre>
+      <div id="viewer"></div>
+    </div>
+
+    <div class="col">
+      <h2>Minimal layout (just the image)</h2>
+      <pre>JS9.create("viewer2", {
+  layout: "minimal",
+  image: "../data/example.fits.gz",
+  opts: { colormap: "heat" }
+});</pre>
+      <div id="viewer2"></div>
+    </div>
+  </div>
+
+  <p style="margin-top: 20px;">
+    Compose parts on top of a preset, e.g.
+    <code>JS9.create("viewer", {layout: "minimal", menubar: true, panner: true})</code>,
+    or define your own named looks by adding to <code>JS9.Layouts</code>.
+  </p>
+
+  <script type="text/javascript">
+    // JS9.create builds the whole editor into the container for you.
+    $(document).ready(function(){
+      JS9.create("viewer", {
+        image: "../data/example.fits.gz",
+        opts: { scale: "log", colormap: "viridis" }
+      });
+      JS9.create("viewer2", {
+        layout: "minimal",
+        image: "../data/example.fits.gz",
+        opts: { colormap: "heat" }
+      });
+    });
+  </script>
+</body>
+</html>
