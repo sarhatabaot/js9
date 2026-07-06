@@ -7,19 +7,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link type="text/css" rel="stylesheet" href="/_site/js9support.css">
   <link type="text/css" rel="stylesheet" href="/_site/js9.css">
-  <!-- No back-end helper: helperType "none" so JS9 never waits on socket.io. -->
   <script type="text/javascript">
     var JS9Prefs = { globalOpts: { helperType: "none", debug: 0 } };
   </script>
   <script type="text/javascript" src="/_site/js9support.js"></script>
   <script type="text/javascript" src="/_site/js9.js"></script>
   <script type="text/javascript" src="/_site/js9plugins.js"></script>
-  <title>JS9 e2e harness (source)</title>
+  <title>JS9 e2e harness (declarative editor)</title>
 </head>
 <body>
-  <div class="JS9Menubar" id="JS9Menubar"></div>
-  <div class="JS9Toolbar" id="JS9Toolbar"></div>
-  <div class="JS9" id="JS9"></div>
-  <div class="JS9Statusbar" id="JS9Statusbar"></div>
+  <!-- No script: JS9.init() builds this editor from its data-* attributes. -->
+  <div class="JS9Editor" id="declEditor"
+       data-layout="viewer"
+       data-image="/build/i800400.fits.gz"
+       data-colormap="heat"></div>
 </body>
 </html>
