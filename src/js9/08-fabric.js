@@ -222,7 +222,7 @@ JS9.Fabric.newShapeLayer = function(layerName, layerOpts, divjq){
 	    // add parent, if not already added
 	    if( obj.params && obj.params.parent && obj.params.parent.obj ){
 		parent = obj.params.parent.obj;
-		if( $.inArray(parent, objs) < 0 ){
+		if( JS9.inArray(parent, objs) < 0 ){
 		    activeObject.addWithUpdate(parent);
 		}
 	    }
@@ -230,7 +230,7 @@ JS9.Fabric.newShapeLayer = function(layerName, layerOpts, divjq){
 	    if( obj.params && obj.params.children ){
 		for(j=0; j<obj.params.children.length; j++){
 		    child = obj.params.children[j].obj;
-		    if( $.inArray(child, objs) < 0 ){
+		    if( JS9.inArray(child, objs) < 0 ){
 			activeObject.addWithUpdate(child);
 		    }
 		}
@@ -280,7 +280,7 @@ JS9.Fabric.newShapeLayer = function(layerName, layerOpts, divjq){
     // backlink
     dlayer.display = display;
     // default options for this layer (deep copy)
-    dlayer.opts = $.extend(true, {}, layerOpts);
+    dlayer.opts = JS9.extend(true, {}, layerOpts);
     // and some needed properties
     dlayer.opts.canvas = dlayer.opts.canvas || {};
     if( dlayer.opts.canvas.selection === undefined ){
@@ -902,7 +902,7 @@ JS9.Fabric.activeShapeLayer = function(s){
 	}
 	// return highest zindex layer
 	rtn = a;
-    } else if( $.isArray(s) ){
+    } else if( Array.isArray(s) ){
 	// non-public internal call: array of layers was specified
 	// set zindex for layers in decreasing order
 	for(i=0, j=this.zlayer-1; i<s.length; i++){
@@ -1023,7 +1023,7 @@ JS9.Fabric._parseShapeOptions = function(layerName, opts, obj){
 	    for(i=0; i<tags.length; i++){
 		nparams.tags[i] = tags[i].trim();
 	    }
-	} else if( $.isArray(opts.tags) ){
+	} else if( Array.isArray(opts.tags) ){
 	    for(i=0; i<opts.tags.length; i++){
 		nparams.tags[i] = opts.tags[i].trim();
 	    }
@@ -1697,7 +1697,7 @@ JS9.Fabric._handleChildText = function(layerName, s, opts){
 		 color: s.stroke, text: opts.text, tags: s.params.tags,
 		 parent: "TBD", rtn: "object"};
 	if( opts.textOpts ){
-	    topts = $.extend(true, {}, topts, opts.textOpts);
+	    topts = JS9.extend(true, {}, topts, opts.textOpts);
 	}
 	// create the child shape
 	t = this.addShapes(layerName, "text", topts);
@@ -1740,7 +1740,7 @@ JS9.Fabric._handleChildText = function(layerName, s, opts){
 	for(i=0; i<s.params.children.length; i++){
 	    child = s.params.children[i].obj;
 	    // change text opts, if necessary
-	    topts = $.extend(true, {}, opts.textOpts || {});
+	    topts = JS9.extend(true, {}, opts.textOpts || {});
 	    // change text, if necessary
 	    if( JS9.notNull(opts.text) ){
 		topts.text = opts.text;
@@ -1766,7 +1766,7 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
     const objs = [];
     const grp = {};
     // is this core service disabled?
-    if( $.inArray("regions", this.params.disable) >= 0 &&
+    if( JS9.inArray("regions", this.params.disable) >= 0 &&
 	layerName === "regions" ){
 	return;
     }
@@ -1804,7 +1804,7 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	    // parsed array of shape objects from regions string
 	    sarr = s;
 	}
-    } else if( $.isArray(shape) ){
+    } else if( Array.isArray(shape) ){
 	sarr = shape;
     } else if( typeof shape === "object" ){
 	sarr = [shape];
@@ -1835,7 +1835,7 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	this.xeqPlugins("shape", "onshapelayercreate", layerName);
     }
     // baseline opts
-    bopts = $.extend(true, {}, JS9.Fabric.opts, layer.opts, myopts);
+    bopts = JS9.extend(true, {}, JS9.Fabric.opts, layer.opts, myopts);
     // process each shape object
     for(ns=0; ns<sarr.length; ns++){
 	carr = sarr[ns];
@@ -1843,7 +1843,7 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	if( carr.preservedcoords === true ){
 	    // sanity check
 	    if( (JS9.isNull(carr.dx) || JS9.isNull(carr.dy))        &&
-		($.isArray(carr.pts) && JS9.isNull(carr.pts[0].dx)) ){
+		(Array.isArray(carr.pts) && JS9.isNull(carr.pts[0].dx)) ){
 		JS9.error("preservedcoords requires positions in display coords");
 	    }
 	    // dcoord shapes are sticky
@@ -1854,7 +1854,7 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	    carr.wcsconfig = {wcssys: "image"};
 	}
 	// combine baseline opts with this shapes's opts
-	opts = $.extend(true, {}, bopts, carr);
+	opts = JS9.extend(true, {}, bopts, carr);
 	// parse options and generate opts and params objects
 	sobj = this._parseShapeOptions(layerName, opts);
 	// remove means remove specified shapes or all shapes
@@ -1893,7 +1893,7 @@ JS9.Fabric.addShapes = function(layerName, shape, myopts){
 	}
 	// some shapes don't want centered scaling
 	if( layer.opts.noCenteredScaling &&
-	    $.inArray(sobj.shape, layer.opts.noCenteredScaling) >= 0 ){
+	    JS9.inArray(sobj.shape, layer.opts.noCenteredScaling) >= 0 ){
 	    opts.centeredScaling = false;
 	}
 	// build the fabric object for this shape
@@ -2167,7 +2167,7 @@ JS9.Fabric._selectShapes = function(layerName, selection, opts, cb){
     let id, ginfo, canvas, ocolor, tag, obj;
     const used = [];
     const xcb = (obj, ginfo) => {
-	if( $.inArray(obj, used) < 0 ){
+	if( JS9.inArray(obj, used) < 0 ){
 	    cb.call(this, obj, ginfo);
 	    used.push(obj);
 	}
@@ -2301,7 +2301,7 @@ JS9.Fabric._selectShapes = function(layerName, selection, opts, cb){
 	}
     }
     // selection can be a single selection or an array of selections
-    if( !$.isArray(selection) ){
+    if( !Array.isArray(selection) ){
 	selection = [selection];
     }
     // process all selections
@@ -2450,7 +2450,7 @@ JS9.Fabric._selectShapes = function(layerName, selection, opts, cb){
 			       obj.params.children.length ){
 			// all
 			xcb(obj, ginfo);
-		    } else if( $.inArray(id, JS9.wcssyss) >= 0    &&
+		    } else if( JS9.inArray(id, JS9.wcssyss) >= 0    &&
 			       obj.params.wcsconfig               &&
 			       obj.params.wcsconfig.wcssys === id ){
 			// original wcs
@@ -2518,7 +2518,7 @@ JS9.Fabric.selectShapes = function(layerName, shape, opts){
     // collect the specified shapes
     this._selectShapes(layerName, shape, opts, (obj) => {
 	// only select once, don't select shapes in groups
-	if( $.inArray(obj, arr) < 0 && (!obj.params || !obj.params.groupid) ){
+	if( JS9.inArray(obj, arr) < 0 && (!obj.params || !obj.params.groupid) ){
 	    arr.push(obj);
 	}
     });
@@ -3024,12 +3024,12 @@ JS9.Fabric._updateShape = function(layerName, obj, ginfo, mode, opts){
 	    JS9.globalOpts.xeqPlugins = false;
 	    owcssys = this.getWCSSys();
 	    if( JS9.notWCS(obj.params.wcsconfig.wcssys) ){
-		pub.wcsconfig = $.extend(true, {}, obj.params.wcsconfig);
+		pub.wcsconfig = JS9.extend(true, {}, obj.params.wcsconfig);
 	    } else {
 		this.setWCSSys(obj.params.wcsconfig.wcssys, false);
 		updatewcs(this.raw.wcs, layer, pub, tstr, angstr, opts,
 			  obj.params.wcsconfig);
-		pub.wcsconfig = $.extend(true, {}, obj.params.wcsconfig);
+		pub.wcsconfig = JS9.extend(true, {}, obj.params.wcsconfig);
 	    }
 	    this.setWCSSys(owcssys, false);
 	    JS9.globalOpts.xeqPlugins = txeq;
@@ -3191,7 +3191,7 @@ JS9.Fabric.groupShapes = function(layerName, shape, opts){
     id = getid(opts);
     // collect the specified shapes
     this._selectShapes(layerName, shape, opts, (obj) => {
-	if( $.inArray(obj, objs) < 0 ){
+	if( JS9.inArray(obj, objs) < 0 ){
 	    // so far, so goodx
 	    skip = false;
 	    // look for conflicts
@@ -3215,7 +3215,7 @@ JS9.Fabric.groupShapes = function(layerName, shape, opts){
 	    // save for group, if necessary
 	    if( !skip ){
 		obj.params.groupid = id;
-		if( $.inArray("groupid", obj.params.exports) < 0 ){
+		if( JS9.inArray("groupid", obj.params.exports) < 0 ){
 		    obj.params.exports.push("groupid");
 		}
 		// save object
@@ -3317,7 +3317,7 @@ JS9.Fabric.ungroupShapes = function(layerName, groupid, opts){
 		    }
 		    // remove groupid from shape
 		    delete shape.params.groupid;
-		    idx = $.inArray("groupid", shape.params.exports);
+		    idx = JS9.inArray("groupid", shape.params.exports);
 		    if( idx >= 0 ){
 			shape.params.exports.splice(idx, 1);
 		    }
@@ -3327,7 +3327,7 @@ JS9.Fabric.ungroupShapes = function(layerName, groupid, opts){
     }
     // remove id from groups
     if( this.groups[layerName] ){
-	idx = $.inArray(groupid, this.groups[layerName]);
+	idx = JS9.inArray(groupid, this.groups[layerName]);
 	if( idx >= 0 ){
 	    this.groups[layerName].splice(idx, 1);
 	}
@@ -3392,12 +3392,12 @@ JS9.Fabric.removeShapes = function(layerName, shape, opts){
 	    }
 	    // mark group for removal
 	    if( obj.params.groupid ){
-		if( $.inArray(obj.params.groupid, grp) < 0 ){
+		if( JS9.inArray(obj.params.groupid, grp) < 0 ){
 		    grp.push(obj.params.groupid);
 		}
 	    }
 	    // possibly mark active object for removal
-	    if( ao && !undoao && $.inArray(obj, ao) >= 0 ){
+	    if( ao && !undoao && JS9.inArray(obj, ao) >= 0 ){
 		undoao = true;
 	    }
 	    // mark for removal
@@ -3536,7 +3536,7 @@ JS9.Fabric.changeShapes = function(layerName, shape, opts){
 	    delete obj.params.changeable;
 	}
 	// combine new opts with old opts
-	bopts = $.extend(true, {}, obj.params, opts);
+	bopts = JS9.extend(true, {}, obj.params, opts);
 	// parse options and generate new obj and params
 	sobj = this._parseShapeOptions(layerName, bopts, obj);
 	// remove means remove specified shapes or all shapes
@@ -3580,7 +3580,7 @@ JS9.Fabric.changeShapes = function(layerName, shape, opts){
 	// change the shape
 	obj.set(sobj.opts);
 	// reestablish params object
-	obj.params = $.extend(false, {}, obj.params, sobj.params);
+	obj.params = JS9.extend(false, {}, obj.params, sobj.params);
 	// if strokeWidth is specified, we change params.sw1,
 	// which will be used by the rescaleBorder routine below
 	if( sobj.opts.strokeWidth ){
@@ -3603,7 +3603,7 @@ JS9.Fabric.changeShapes = function(layerName, shape, opts){
 		// generate new annuli, applying changes
 		rlen = obj.params.radii.length;
 		maxr = 0;
-		topts = $.extend(true, {}, opts);
+		topts = JS9.extend(true, {}, opts);
 		topts.stroke = topts.stroke || obj.get("stroke");
 		topts.strokeWidth = topts.strokeWidth || obj.get("strokeWidth");
 		topts.strokeDashArray = topts.strokeDashArray || obj.get("strokeDashArray");
@@ -3638,7 +3638,7 @@ JS9.Fabric.changeShapes = function(layerName, shape, opts){
 	    }
 	    break;
 	case "cross":
-	    topts = $.extend(true, {}, opts);
+	    topts = JS9.extend(true, {}, opts);
 	    topts.stroke = topts.stroke || obj.get("stroke");
 	    // change width to two points making up the first line
 	    if( topts.width ){
@@ -3660,7 +3660,7 @@ JS9.Fabric.changeShapes = function(layerName, shape, opts){
 	    }
 	    // apply changes to each line of the cross
 	    obj.forEachObject((tobj, idx) => {
-		xopts = $.extend(true, {}, topts);
+		xopts = JS9.extend(true, {}, topts);
 		if( cpts[idx] ){ xopts.points = cpts[idx]; }
 		tobj.set(xopts);
 	    });

@@ -398,7 +398,7 @@ JS9.dragdropCB = function(id, evt){
     }
     evt.stopPropagation();
     evt.preventDefault();
-    opts = $.extend(true, {}, JS9.fits.options);
+    opts = JS9.extend(true, {}, JS9.fits.options);
     opts.display = opts.display || id;
     opts.extlist = opts.extlist || JS9.globalOpts.extlist;
     files = evt.target.files || evt.dataTransfer.files;
@@ -589,7 +589,7 @@ JS9.instantiatePlugin = function(el, plugin, winhandle, args){
 	// save type
 	instance.winType = "div";
 	// should this plugin div be hidden at the start?
-	if( $.inArray(instance.name, JS9.globalOpts.hiddenPluginDivs) >=0 ){
+	if( JS9.inArray(instance.name, JS9.globalOpts.hiddenPluginDivs) >=0 ){
 	    visible = "hidden";
 	}
 	// wrap the target div in a container div

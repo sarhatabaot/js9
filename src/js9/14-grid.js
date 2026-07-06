@@ -80,7 +80,7 @@ JS9.Grid.getLabel = function(opts, v, which){
 		}
 	    }
 	}
-	opts.last[which] = $.extend({}, arr);
+	opts.last[which] = JS9.extend({}, arr);
 	break;
     default:
 	t = v.toFixed(opts.degPrec);
@@ -140,7 +140,7 @@ JS9.Grid.display = function(mode, myopts){
     // we are actively creating a grid
     this.tmp.gridStatus = "processing";
     // get opts
-    opts = $.extend(true, {}, JS9.Grid.opts, myopts);
+    opts = JS9.extend(true, {}, JS9.Grid.opts, myopts);
     // labels will follow current wcs units
     opts.wcsunits = this.getWCSUnits();
     opts.wcssys = this.getWCSSys();
@@ -421,7 +421,7 @@ JS9.Grid.regrid = function(im){
 // eslint-disable-next-line no-unused-vars
 JS9.Grid.init = function(opts){
     let dlayer;
-    opts = $.extend(true, {}, JS9.Catalogs.opts, JS9.Grid.opts, opts);
+    opts = JS9.extend(true, {}, JS9.Catalogs.opts, JS9.Grid.opts, opts);
     // init the display shape layer
     dlayer = this.display.newShapeLayer(JS9.Grid.LAYERNAME, opts);
     // mouse up: no-op

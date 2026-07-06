@@ -246,12 +246,12 @@ JS9.Image = function(file, params, func){
     // xeq callback for region changes?
     this.params.xeqonchange = true;
     // copy image parameters
-    this.params = $.extend(true, this.params, JS9.imageOpts, localOpts);
+    this.params = JS9.extend(true, this.params, JS9.imageOpts, localOpts);
     // inherit properties, if necessary
     if( this.display.image ){
 	this.params.inherit = this.display.image.params.inherit;
 	if( this.params.inherit ){
-	    this.params = $.extend(true,
+	    this.params = JS9.extend(true,
 				   this.params, this.display.image.params);
 	}
     }
@@ -339,9 +339,9 @@ JS9.Image = function(file, params, func){
     // array to hold raw data as we create it (original raw data at index 0)
     this.raws = [];
     // initial blend mode
-    this.blend = $.extend(true, {}, JS9.blendOpts);
+    this.blend = JS9.extend(true, {}, JS9.blendOpts);
     // initial mask mode
-    this.mask = $.extend(true, {}, JS9.maskOpts);
+    this.mask = JS9.extend(true, {}, JS9.maskOpts);
     // request for an empty image object ends here
     if( !file ){
 	return;
@@ -360,7 +360,7 @@ JS9.Image = function(file, params, func){
 	// generate the raw data array from the hdu
 	// (11/2021: leave check on 'filename' for backward compatibility)
 	this.mkRawDataFromHDU(file,
-			      $.extend({},
+			      JS9.extend({},
 				       {file: file.file||file.filename},
 				       localOpts));
 	// set scaling params from opts
@@ -676,12 +676,12 @@ JS9.Image.prototype.initLCS = function(iheader){
 	    }
 	}
     }
-    this.lcs.physical = {forward: $.extend(true, [], arr),
+    this.lcs.physical = {forward: JS9.extend(true, [], arr),
 			 reverse: JS9.invertMatrix3(arr)};
     if( this.lcs.physical.reverse ){
 	if( frot ){
-	    this.lcs.physical.frot = $.extend(true, [], frot);
-	    this.lcs.physical.rrot = $.extend(true, [], rrot);
+	    this.lcs.physical.frot = JS9.extend(true, [], frot);
+	    this.lcs.physical.rrot = JS9.extend(true, [], rrot);
 	    // zero-index center
 	    this.lcs.physical.cx = cx - arr[2][0] - 1;
 	    this.lcs.physical.cy = cy - arr[2][1] - 1;
@@ -696,12 +696,12 @@ JS9.Image.prototype.initLCS = function(iheader){
     arr[1][1] = JS9.defNull(header.DTM2_2, 1.0);
     arr[2][0] = header.DTV1   || 0.0;
     arr[2][1] = header.DTV2   || 0.0;
-    this.lcs.detector = {forward: $.extend(true, [], arr),
+    this.lcs.detector = {forward: JS9.extend(true, [], arr),
 			reverse: JS9.invertMatrix3(arr)};
     if( this.lcs.detector.reverse ){
 	if( frot ){
-	    this.lcs.detector.frot = $.extend(true, [], frot);
-	    this.lcs.detector.rrot = $.extend(true, [], rrot);
+	    this.lcs.detector.frot = JS9.extend(true, [], frot);
+	    this.lcs.detector.rrot = JS9.extend(true, [], rrot);
 	    // zero-index center
 	    this.lcs.detector.cx = cx - arr[2][0] - 1;
 	    this.lcs.detector.cy = cy - arr[2][1] - 1;
@@ -716,12 +716,12 @@ JS9.Image.prototype.initLCS = function(iheader){
     arr[1][1] = JS9.defNull(header.ATM2_2, 1.0);
     arr[2][0] = header.ATV1   || 0.0;
     arr[2][1] = header.ATV2   || 0.0;
-    this.lcs.amplifier = {forward: $.extend(true, [], arr),
+    this.lcs.amplifier = {forward: JS9.extend(true, [], arr),
 			  reverse: JS9.invertMatrix3(arr)};
     if( this.lcs.amplifier.reverse ){
 	if( frot ){
-	    this.lcs.amplifier.frot = $.extend(true, [], frot);
-	    this.lcs.amplifier.rrot = $.extend(true, [], rrot);
+	    this.lcs.amplifier.frot = JS9.extend(true, [], frot);
+	    this.lcs.amplifier.rrot = JS9.extend(true, [], rrot);
 	    // zero-index center
 	    this.lcs.amplifier.cx = cx - arr[2][0] - 1;
 	    this.lcs.amplifier.cy = cy - arr[2][1] - 1;
@@ -740,7 +740,7 @@ JS9.Image.prototype.initLCS = function(iheader){
     }
     // save original physical
     if( this.lcs.physical && !this.lcs.ophysical ){
-	this.lcs.ophysical = $.extend(true, {}, this.lcs.physical);
+	this.lcs.ophysical = JS9.extend(true, {}, this.lcs.physical);
     }
     // allow chaining
     return this;
@@ -754,9 +754,9 @@ JS9.Image.prototype.mkRawDataFromHDU = function(obj, opts){
     let nhist = 0;
     let ncomm = 0;
     opts = opts || {};
-    if( $.isArray(obj) || JS9.isTypedArray(obj) || obj instanceof ArrayBuffer ){
+    if( Array.isArray(obj) || JS9.isTypedArray(obj) || obj instanceof ArrayBuffer ){
 	// flatten if necessary
-	if( $.isArray(obj[0]) ){
+	if( Array.isArray(obj[0]) ){
 	    obj = obj.reduce( (a, b) => { return a.concat(b); });
 	}
 	// javascript array or typed array
@@ -855,7 +855,7 @@ JS9.Image.prototype.mkRawDataFromHDU = function(obj, opts){
     }
     // make sure we have a typed array
     // flatten if necessary
-    if( $.isArray(hdu.image[0]) ){
+    if( Array.isArray(hdu.image[0]) ){
 	hdu.image = hdu.image.reduce( (a, b) => { return a.concat(b); });
     }
     // make the raw data: note in the case of a typed array coming from
@@ -945,7 +945,7 @@ JS9.Image.prototype.mkRawDataFromHDU = function(obj, opts){
 	if( header.LTV1 !== undefined   || header.LTV2 !== undefined   ||
 	    header.LTM1_1 !== undefined || header.LTM2_2 !== undefined ){
 	    this.parent = {};
-	    this.parent.raw = {header: $.extend(true, {}, header)};
+	    this.parent.raw = {header: JS9.extend(true, {}, header)};
 	    // initialize LCS for this parent header
 	    this.parent.lcs = {};
 	    // call is used because this.parent is not an image object
@@ -2685,7 +2685,7 @@ JS9.Image.prototype.displaySection = function(opts, func){
 	let tim, did, arr;
 	let ss = "";
 	// make a copy of opts so we can change it
-	topts = $.extend(true, {}, opts || {});
+	topts = JS9.extend(true, {}, opts || {});
 	if( JS9.isNull(topts.refreshRegions) ){
 	    topts.refreshRegions = true;
 	}
@@ -2890,7 +2890,7 @@ JS9.Image.prototype.displaySection = function(opts, func){
     }
     if( opts.separate ){
 	// if we are generating a separate image, copy the hdu
-	hdu = $.extend(true, {}, this.raw.hdu);
+	hdu = JS9.extend(true, {}, this.raw.hdu);
     } else {
 	// if we are replacing the current image, use the hdu directly
 	hdu = this.raw.hdu;
@@ -3159,7 +3159,7 @@ JS9.Image.prototype.displayExtension = function(extid, opts, func){
     let i, s, got, extname, im, id;
     const dispnext = (i) => {
 	let hdu;
-	const topts = $.extend(true, {}, opts);
+	const topts = JS9.extend(true, {}, opts);
 	// hdus are loaded as separate images
 	topts.separate = true;
 	// all done, call the supplied func, if any
@@ -3285,7 +3285,7 @@ JS9.Image.prototype.displaySlice = function(slice, opts, func){
 	// ignore the fact that we already are displaying a slice of the image,
 	// since we don't actually know which slice is being displayed ...
 	for(i=1; i<=this.raw.header.NAXIS3; i++){
-	    topts = $.extend(true, {}, opts, {separate: true});
+	    topts = JS9.extend(true, {}, opts, {separate: true});
 	    this.displaySlice(i, topts, func);
 	}
     } else {
@@ -3334,7 +3334,7 @@ JS9.Image.prototype.toArray = function(opts){
     // always perform the header keyword fix
     opts.simple = true;
     // make a copy of the header, in case we have to change it
-    header = $.extend(true, {}, this.raw.header);
+    header = JS9.extend(true, {}, this.raw.header);
     // are we processing a section of the image?
     if( JS9.notNull(opts.sect) ){
 	// image section
@@ -3441,7 +3441,7 @@ JS9.Image.prototype.setPan = function(...args){
     let i, obj, im, pos, owcssys, txeq, arr, oval, npan;
     let [panx, pany] = args;
     // is this core service disabled?
-    if( $.inArray("pan", this.params.disable) >= 0 ){
+    if( JS9.inArray("pan", this.params.disable) >= 0 ){
 	return;
     }
     // default is to pan to center
@@ -3627,7 +3627,7 @@ JS9.Image.prototype.parseZoom = function(zval){
 JS9.Image.prototype.setZoom = function(zval){
     let i, nzoom, im, ipos, oval;
     // is this core service disabled?
-    if( $.inArray("zoom", this.params.disable) >= 0 ){
+    if( JS9.inArray("zoom", this.params.disable) >= 0 ){
 	return;
     }
     nzoom = this.parseZoom(zval);
@@ -4320,7 +4320,7 @@ JS9.Image.prototype.getWCSSys = function(){
 JS9.Image.prototype.setWCSSys = function(wcssys, updatedef){
     let s, u;
     // is this core service disabled?
-    if( $.inArray("wcs", this.params.disable) >= 0 ){
+    if( JS9.inArray("wcs", this.params.disable) >= 0 ){
 	return;
     }
     // do we update the default?
@@ -4391,7 +4391,7 @@ JS9.Image.prototype.initWCS = function(header){
 	    if( !this.raw.altwcs[alt] ){
 		this.raw.altwcs[alt] = {};
 		// start with original header
-		this.raw.altwcs[alt].header = $.extend({}, header);
+		this.raw.altwcs[alt].header = JS9.extend({}, header);
 	    }
 	    // wcslib seems to want "RADECSYS", not "RADESYS"
 	    if( varr[1] === "RADESYS" ){
@@ -4455,7 +4455,7 @@ JS9.Image.prototype.getWCS = function(){
     // loop through wcs objects, looking for a match
     for( key of Object.keys(this.raw.altwcs) ){
 	if( this.raw.wcs === this.raw.altwcs[key].wcs ){
-	    obj = $.extend(true, {}, this.raw.altwcs[key].wcsinfo);
+	    obj = JS9.extend(true, {}, this.raw.altwcs[key].wcsinfo);
 	    obj.version = key;
 	    obj.wcsname = this.raw.altwcs[key].header.WCSNAME;
 	    return obj;
@@ -4525,7 +4525,7 @@ JS9.Image.prototype.getWCSUnits = function(){
 JS9.Image.prototype.setWCSUnits = function(wcsunits, updatedef){
     let s, ws;
     // is this core service disabled?
-    if( $.inArray("wcs", this.params.disable) >= 0 ){
+    if( JS9.inArray("wcs", this.params.disable) >= 0 ){
 	return;
     }
     // do we update the default?
@@ -5421,7 +5421,7 @@ JS9.Image.prototype.displayAnalysis = function(type, s, opts){
 	if( pobj.data ){
 	    switch( JS9.globalOpts.plotLibrary ){
 	    case "plotly":
-		popts = $.extend(true, {}, JS9.Plot.opts, pobj.opts);
+		popts = JS9.extend(true, {}, JS9.Plot.opts, pobj.opts);
 		if( pobj.label ){
 		    popts.title = pobj.label;
 		}
@@ -5464,7 +5464,7 @@ JS9.Image.prototype.displayAnalysis = function(type, s, opts){
 		break;
 	    case "flot":
 	    default:
-		popts = $.extend(true, {}, JS9.Plot.opts, pobj.opts);
+		popts = JS9.extend(true, {}, JS9.Plot.opts, pobj.opts);
 		// add re-annotate callback, if necessary
 		if( JS9.Plot.opts.annotate && pobj.annotations ){
 		    // eslint-disable-next-line no-unused-vars
@@ -5926,7 +5926,7 @@ JS9.Image.prototype.setColormap = function(...args){
 	this.params.colormap = this.cmapObj.name;
 	// for static colormaps, copy the static object (we might edit it)
 	if( this.cmapObj.type === "static" ){
-	    this.staticObj = $.extend(true, {}, this.cmapObj);
+	    this.staticObj = JS9.extend(true, {}, this.cmapObj);
 	}
 	// set rgb mode, if necessary
 	switch(arg){
@@ -5958,7 +5958,7 @@ JS9.Image.prototype.setColormap = function(...args){
     const setStatic = (a) => {
 	let i, j, color, dval;
 	for(i=0; i<a.length; i++){
-	    if( !$.isArray(a[i]) || typeof a[i][0] !== "string" ){ continue; }
+	    if( !Array.isArray(a[i]) || typeof a[i][0] !== "string" ){ continue; }
 	    for(j=0; j<this.staticObj.colors.length; j++){
 		color = this.staticObj.colors[j];
 		if( a[i][0] === color.name ){
@@ -6002,7 +6002,7 @@ JS9.Image.prototype.setColormap = function(...args){
     }
     // is this core service disabled?
     // (only if the colormap has been set at least once!)
-    if( $.inArray("colormap", this.params.disable) >= 0 && this.cmapObj ){
+    if( JS9.inArray("colormap", this.params.disable) >= 0 && this.cmapObj ){
 	return;
     }
     switch(args.length){
@@ -6026,7 +6026,7 @@ JS9.Image.prototype.setColormap = function(...args){
 	    break;
 	default:
 	    if( this.cmapObj && this.cmapObj.type === "static" ){
-		if( $.isArray(arg) ){
+		if( Array.isArray(arg) ){
 		    setStatic(arg);
 		} else if( typeof arg === "string" && arg.charAt(0) === '[' ){
 		    try{
@@ -6112,7 +6112,7 @@ JS9.Image.prototype.setScale = function(...args){
 	}
     };
     // is this core service disabled?
-    if( $.inArray("scale", this.params.disable) >= 0 ){
+    if( JS9.inArray("scale", this.params.disable) >= 0 ){
 	return;
     }
     if( args.length ){
@@ -6176,7 +6176,7 @@ JS9.Image.prototype.getOpacity = function(){
 JS9.Image.prototype.setOpacity = function(...args){
     let [a1, a2, a3] = args;
     // is this core service disabled?
-    if( $.inArray("opacity", this.params.disable) >= 0 ){
+    if( JS9.inArray("opacity", this.params.disable) >= 0 ){
 	return;
     }
     if( args.length ){
@@ -6265,7 +6265,7 @@ JS9.Image.prototype.setParam = function(param, value){
     value = getval(value);
     // merge in new params
     if( param === "all" && typeof value === "object" ){
-	$.extend(true, this.params, value);
+	JS9.extend(true, this.params, value);
 	// call core methods as needed
 	if( value.colormap || value.contrast || value.bias ){
 	    obj = this.getColormap();
@@ -6308,22 +6308,22 @@ JS9.Image.prototype.setParam = function(param, value){
 	}
 	return this.params;
     } else if( param === "disable" ){
-	if( !$.isArray(value) ){
+	if( !Array.isArray(value) ){
 	    value = [value];
 	}
 	for(i=0; i<value.length; i++){
-	    idx = $.inArray(value[i], this.params.disable);
+	    idx = JS9.inArray(value[i], this.params.disable);
 	    if( idx < 0 ){
 		this.params.disable.push(value[i]);
 	    }
 	}
 	return this.params.disable;
     } else if( param === "enable" ){
-	if( !$.isArray(value) ){
+	if( !Array.isArray(value) ){
 	    value = [value];
 	}
 	for(i=0; i<value.length; i++){
-	    idx = $.inArray(value[i], this.params.disable);
+	    idx = JS9.inArray(value[i], this.params.disable);
 	    if( idx >= 0 ){
 		this.params.disable.splice(idx, 1);
 	    }
@@ -6406,9 +6406,9 @@ JS9.Image.prototype.copyParams = function(params, images, opts){
 	try{ params = JSON.parse(params); }
 	catch(e){ JS9.error(`can't parse JSON in copyParams: ${params}`, e); }
     }
-    if( !$.isArray(params) ){ params = [params]; }
+    if( !Array.isArray(params) ){ params = [params]; }
     // do regions first to avoid problems with changes to the current image
-    i = $.inArray("regions", params);
+    i = JS9.inArray("regions", params);
     if( i >= 0 ){
 	params.splice(i, 1);
 	params.unshift("regions");
@@ -6419,7 +6419,7 @@ JS9.Image.prototype.copyParams = function(params, images, opts){
 	try{ images = JSON.parse(images); }
 	catch(e){ JS9.error(`can't parse JSON in copyParams: ${images}`, e); }
     }
-    if( !$.isArray(images) ){ images = [images]; }
+    if( !Array.isArray(images) ){ images = [images]; }
     // for each image
     for(i=0; i<images.length; i++){
 	im = images[i];
@@ -6436,7 +6436,7 @@ JS9.Image.prototype.copyParams = function(params, images, opts){
 	}
 	// save the currently displayed image
 	if( im !== im.display.image ){
-	    if( $.inArray(im.display.image, xims) < 0 ){
+	    if( JS9.inArray(im.display.image, xims) < 0 ){
 		xims.push(im.display.image);
 	    }
 	}
@@ -6840,7 +6840,7 @@ JS9.Image.prototype.radialProfile = function(...args){
     for(i=0; i<args.length; i++){
 	if( typeof args[i] === "object" ){
 	    // integrate our switches into passed opts
-	    cobj = $.extend(true, {}, args[i], swobj);
+	    cobj = JS9.extend(true, {}, args[i], swobj);
 	    carr.push(cobj);
 	    opts = cobj;
 	} else {
@@ -6902,7 +6902,7 @@ JS9.Image.prototype.plot3d = function(src, bkg, opts){
 	JS9.error("plot3d requires a data cube with 3 dimensions");
     }
     // opts is optional
-    opts = $.extend(true, {}, opts, JS9.globalOpts.plot3d);
+    opts = JS9.extend(true, {}, opts, JS9.globalOpts.plot3d);
     // slice
     opts.cube = opts.cube || "*:*:all";
     // make sure 'all' is specified
@@ -7137,7 +7137,7 @@ JS9.Image.prototype.rawDataLayer = function(...args){
     // if we don't have an existing nraw, make a copy from oraw
     if( (cur < 0) || opts.alwaysCopy ){
 	// make copy
-	nraw = $.extend(true, {}, oraw);
+	nraw = JS9.extend(true, {}, oraw);
 	// save current for next time
 	nraw.current0 = oraw;
 	// but ensure data is a copy, not a pointer to the original!
@@ -7600,7 +7600,7 @@ JS9.Image.prototype.rotateData = function(...args){
     }
     // old and new header
     oheader = raw.header;
-    nheader = $.extend(true, {}, oheader);
+    nheader = JS9.extend(true, {}, oheader);
     // rotate around current center or file center (i.e., CRPIX1,2)
     opts.center = opts.center || JS9.globalOpts.rotationCenter;
     if( opts.center !== "file" && this.validWCS() ){
@@ -7682,7 +7682,7 @@ JS9.Image.prototype.reproject = function(wcsim, opts){
     const addwcsinfo = (header, wcsinfo) => {
 	let theader;
 	if( !wcsinfo ){ return header; }
-	theader = $.extend(true, {}, header);
+	theader = JS9.extend(true, {}, header);
 	if( JS9.isNull(theader.CRVAL1) && !JS9.isNull(wcsinfo.crval1) ){
 	    theader.CRVAL1 = wcsinfo.crval1;
 	}
@@ -7719,7 +7719,7 @@ JS9.Image.prototype.reproject = function(wcsim, opts){
     // opts is optional
     opts = opts || {};
     // make copy of input header, removing wcs keywords
-    oheader = $.extend(true, {}, raw.header);
+    oheader = JS9.extend(true, {}, raw.header);
     for( key of Object.keys(oheader) ){
 	if( wcsexp.test(key) ){
 	    delete oheader[key];
@@ -7741,7 +7741,7 @@ JS9.Image.prototype.reproject = function(wcsim, opts){
 	    }
 	}
 	// combine new wcs keywords + old header keywords
-	wcsheader = $.extend(true, {}, twcs, oheader);
+	wcsheader = JS9.extend(true, {}, twcs, oheader);
 	// sanity check on result
 	if( !wcsheader.NAXIS || !wcsheader.NAXIS1 || !wcsheader.NAXIS2 ){
 	    // JS9.error("invalid FITS image header");
@@ -8007,7 +8007,7 @@ JS9.Image.prototype.reprojectData = function(...args){
 	ovfile = this.reproject(wcsim, opts);
 	if( ovfile ){
 	    // refresh image using the reprojected file ...
-	    topts = $.extend(true, {}, JS9.fits.options, opts);
+	    topts = JS9.extend(true, {}, JS9.fits.options, opts);
 	    // ... in a new raw data layer
 	    topts.rawid = topts.rawid || "reproject";
 	    // save pointer to original wcs image
@@ -8163,7 +8163,7 @@ JS9.Image.prototype.moveToDisplay = function(dname){
     }
     // if display is in a lightwin and there are no other images, close it
     if( !got && odisplay.winid && odisplay.winid.close ){
-	i = $.inArray(odisplay, JS9.displays);
+	i = JS9.inArray(odisplay, JS9.displays);
 	if( i >= 0 ){
 	    JS9.displays.splice(i, 1);
 	}
@@ -8196,7 +8196,7 @@ JS9.Image.prototype.saveSession = function(file, opts){
 	obj.dwidth = im.display.width;
 	obj.dheight = im.display.height;
 	// image params
-	obj.params = $.extend(true, {}, im.params);
+	obj.params = JS9.extend(true, {}, im.params);
 	// temp values: explicitly save some of them
 	obj.tmp = {};
 	if( im.tmp.gridStatus === "active" ){
@@ -8230,7 +8230,7 @@ JS9.Image.prototype.saveSession = function(file, opts){
 		tobj = {};
 		tobj.name = key;
 		tobj.json = dlayer.canvas.toJSON(dlayer.el);
-		tobj.dopts = $.extend(true, {}, dlayer.opts);
+		tobj.dopts = JS9.extend(true, {}, dlayer.opts);
 		if( layer.catalog ){
 		    tobj.catalog = layer.catalog;
 		}
@@ -8305,7 +8305,7 @@ JS9.Image.prototype.saveSession = function(file, opts){
     // save display parameters
     obj.display = {blendMode: this.display.blendMode};
     // save global params
-    obj.globals = $.extend(true, {}, JS9.globalOpts);
+    obj.globals = JS9.extend(true, {}, JS9.globalOpts);
     // but delete properties which cause circular errors
     delete obj.globals.rgb;
     // save user-defined colormaps
@@ -8408,11 +8408,11 @@ JS9.Image.prototype.xeqStashCall = function(xeqstash, exclArr){
 	}
     };
     xeqstash = xeqstash || this.xeqstash;
-    if( $.isArray(xeqstash) ){
+    if( Array.isArray(xeqstash) ){
 	for(i=0; i<xeqstash.length; i++){
 	    xeq = xeqstash[i];
 	    key = xeq.func;
-	    if( $.inArray(key, exclArr) >= 0 ){
+	    if( JS9.inArray(key, exclArr) >= 0 ){
 		continue;
 	    }
 	    doxeq(key, xeq);
@@ -8420,7 +8420,7 @@ JS9.Image.prototype.xeqStashCall = function(xeqstash, exclArr){
     } else {
 	// backward compatibility: pre 3.1 used an object, not an array
 	for( key of Object.keys(xeqstash) ){
-	    if( $.inArray(key, exclArr) >= 0 ){
+	    if( JS9.inArray(key, exclArr) >= 0 ){
 		continue;
 	    }
 	    xeq = xeqstash[key];
@@ -8434,7 +8434,7 @@ JS9.Image.prototype.xeqStashDiscard = function(xid){
     let i, key;
     // sanity check
     if( !this.xeqstash ){ return; }
-    if( $.isArray(this.xeqstash) ){
+    if( Array.isArray(this.xeqstash) ){
 	for(i=this.xeqstash.length-1; i>=0; i--){
 	    if( xid === this.xeqstash[i].func || xid === this.xeqstash[i].id ){
 		this.xeqstash.splice(i,1);
@@ -8778,7 +8778,7 @@ JS9.Image.prototype.starbaseToShapes = function(starbase, opts){
 JS9.Image.prototype.loadCatalog = function(...args){
     let [layer, catalog, opts] = args;
     let shapes, topts, starbase;
-    const lopts = $.extend(true, {}, JS9.Catalogs.opts);
+    const lopts = JS9.extend(true, {}, JS9.Catalogs.opts);
     const global = JS9.globalOpts.catalogs;
     const defconv = (s) => {
 	const delims = " \t-.:hdmsr'\"";

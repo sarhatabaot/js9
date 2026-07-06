@@ -7,7 +7,7 @@ JS9.Colormap = function(...args){
     this.name = name;
     switch(args.length){
     case 2:
-	if( $.isArray(a1[0]) && typeof a1[0][0] === "number" ){
+	if( Array.isArray(a1[0]) && typeof a1[0][0] === "number" ){
 	    // array of rgb values
 	    // JS9.Colormap("sls", [[0, 0, 0], [0.043442, 0, 0.052883], ...]);
 	    this.type = "lut";

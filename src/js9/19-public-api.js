@@ -224,7 +224,7 @@ JS9.mkPublic("AddColormap", function(...args){
 	if( typeof xobj !== "object" ){
 	    JS9.error("invalid colormap object for JS9.AddColormap()");
 	}
-	if( !$.isArray(xobj) ){
+	if( !Array.isArray(xobj) ){
 	    xobj = [xobj];
 	}
 	for(i=0; i<xobj.length; i++){
@@ -444,7 +444,7 @@ JS9.mkPublic("Load", function(...args){
     // opts can be an object or json
     if( typeof opts === "object" ){
 	// make a copy so we can modify it
-	opts = $.extend(true, {}, opts);
+	opts = JS9.extend(true, {}, opts);
     } else if( typeof opts === "string" ){
 	// convert json to object
 	try{ opts = JSON.parse(opts); }
@@ -519,7 +519,7 @@ JS9.mkPublic("Load", function(...args){
 	// processing type: img or fits
 	switch(ptype){
 	case "fits":
-	    topts = $.extend(true, {}, JS9.fits.options, opts);
+	    topts = JS9.extend(true, {}, JS9.fits.options, opts);
 	    // for Electron.js desktop, see if we can access the path locally
 	    // (for blobs coming from drag/drop and openLocal)
 	    if( file.path && opts.localAccess ){
@@ -565,7 +565,7 @@ JS9.mkPublic("Load", function(...args){
 	    opts.file = JS9.ANON + JS9.uniqueID();
 	}
 	blob.name = opts.file;
-	topts = $.extend(true, {}, JS9.fits.options, opts);
+	topts = JS9.extend(true, {}, JS9.fits.options, opts);
 	try{ JS9.handleFITSFile(blob, topts, JS9.NewFitsImage); }
 	catch(e){ JS9.error("can't process FITS file", e); }
 	return;
@@ -630,7 +630,7 @@ JS9.mkPublic("Load", function(...args){
     vfile = JS9.localAccess(file);
     if( vfile ){
 	// access local file directly
-	topts = $.extend(true, {}, JS9.fits.options, opts);
+	topts = JS9.extend(true, {}, JS9.fits.options, opts);
 	topts.file = file;
 	topts.vfile = vfile;
 	// give spinner a chance to start up
@@ -653,7 +653,7 @@ JS9.mkPublic("LoadWindow", function(...args){
     const obj = JS9.parsePublicArgs(args);
     const removeDisplay = (display) => {
 	// remove from display list
-	const idx = $.inArray(display, JS9.displays);
+	const idx = JS9.inArray(display, JS9.displays);
 	if( idx >= 0 ){ JS9.displays.splice(idx, 1); }
     };
     const getHTML = (id, opts, winopts) => {
@@ -831,7 +831,7 @@ JS9.mkPublic("LoadWindow", function(...args){
     // opts can be an object or json
     if( typeof opts === "object" ){
 	// make a copy so we can modify it
-	opts = $.extend(true, {}, opts);
+	opts = JS9.extend(true, {}, opts);
     } else if( typeof opts === "string" ){
 	// convert json to object
 	try{ opts = JSON.parse(opts); }
@@ -968,7 +968,7 @@ JS9.mkPublic("LoadProxy", function(...args){
     // opts can be an object or json
     if( typeof opts === "object" ){
 	// make a copy so we can modify it
-	opts = $.extend(true, {}, opts);
+	opts = JS9.extend(true, {}, opts);
     } else if( typeof opts === "string" ){
 	// convert json to object
 	try{ opts = JSON.parse(opts); }
@@ -1101,7 +1101,7 @@ JS9.mkPublic("Preload", function(...args){
 	for(i=0; i<alen; i++){
 	    j = i + 1;
 	    if( (j < alen) && (typeof args[j] === "object") ){
-		pobj = $.extend(true, {}, args[j]);
+		pobj = JS9.extend(true, {}, args[j]);
 		JS9.preloads.push([args[i], pobj, dobj]);
 		i++;
 	    } else if( (j < alen) && args[j].startsWith("{") ){
@@ -1410,7 +1410,7 @@ JS9.mkPublic("SaveColormap", function(...args){
 	for(i=0; i<arr.length; i++){
 	    c = JS9.lookupColormap(arr[i]);
 	    if( c ){
-		c = $.extend(true, {}, c);
+		c = JS9.extend(true, {}, c);
 		delete c.type;
 		cobj.push(c);
 	    }
@@ -1431,19 +1431,19 @@ JS9.mkPublic("SaveColormap", function(...args){
 	    arg2 = convertjson(arg2);
 	    if( !arg1 ){
 		fname = "js9.cmap";
-		cobj = $.extend(true, {}, im.cmapObj);
+		cobj = JS9.extend(true, {}, im.cmapObj);
 		delete cobj.type;
 	    } else if( typeof arg1 === "string" ){
 		fname = arg1;
 		if( typeof arg2 === "string" ){
 		    cobj = getarr([arg2]);
-		} else if( $.isArray(arg2) ){
+		} else if( Array.isArray(arg2) ){
 		    cobj = getarr(arg2);
 		} else {
-		    cobj = $.extend(true, {}, im.cmapObj);
+		    cobj = JS9.extend(true, {}, im.cmapObj);
 		    delete cobj.type;
 		}
-	    } else if( $.isArray(arg1) ){
+	    } else if( Array.isArray(arg1) ){
 		fname = "js9.cmap";
 		cobj = getarr(arg1);
 	    }
@@ -2014,7 +2014,7 @@ JS9.mkPublic("LoadRegions", function(...args){
     // opts can be an object or json
     if( typeof opts === "object" ){
 	// make a copy so we can modify it
-	opts = $.extend(true, {}, opts);
+	opts = JS9.extend(true, {}, opts);
     } else if( typeof opts === "string" ){
 	// convert json to object
 	try{ opts = JSON.parse(opts); }
@@ -2219,7 +2219,7 @@ JS9.mkPublic("RemoveDisplay", function(...args){
     if( !display ){
 	JS9.error("invalid display for remove");
     }
-    idx = $.inArray(display, JS9.displays);
+    idx = JS9.inArray(display, JS9.displays);
     if( idx >= 0 ){
 	cel = display.divjq.closest(".JS9GridContainer");
 	el = display.divjq.closest(".JS9GridItem");
@@ -2256,7 +2256,7 @@ JS9.mkPublic("SaveSession", function(...args){
     // opts can be an object or json or a filename
     if( typeof arg1 === "object" ){
 	// make a copy so we can modify it
-	opts = $.extend(true, {}, arg1);
+	opts = JS9.extend(true, {}, arg1);
     } else if( typeof arg1 === "string" ){
 	// try to convert json to object, but default to a file name
 	try{ opts = JSON.parse(arg1); }
@@ -2265,7 +2265,7 @@ JS9.mkPublic("SaveSession", function(...args){
 	    // but is there a second opts arg?
 	    if( arg2 ){
 		if( typeof arg2 === "object" ){
-		    opts = $.extend(true, {}, arg2);
+		    opts = JS9.extend(true, {}, arg2);
 		} else {
 		    try{ opts = JSON.parse(arg2); }
 		    catch(e2){ opts = {}; }
@@ -2324,7 +2324,7 @@ JS9.mkPublic("LoadSession", function(...args){
     // opts can be an object or json
     if( typeof opts === "object" ){
 	// make a copy so we can modify it
-	opts = $.extend(true, {}, opts);
+	opts = JS9.extend(true, {}, opts);
     } else if( typeof opts === "string" ){
 	// convert json to object
 	try{ opts = JSON.parse(opts); }
@@ -2412,7 +2412,7 @@ JS9.mkPublic("LoadCatalog", function(...args){
     // opts can be an object or json
     if( typeof opts === "object" ){
 	// make a copy so we can modify it
-	opts = $.extend(true, {}, opts);
+	opts = JS9.extend(true, {}, opts);
     } else if( typeof opts === "string" ){
 	// convert json to object
 	try{ opts = JSON.parse(opts); }
@@ -2680,7 +2680,7 @@ JS9.init = function(){
     // if the js9 inline object exists, add it the JS9 object
     if( {}.hasOwnProperty.call(window, "JS9Inline") &&
 	typeof JS9Inline === "object"               ){
-	JS9.inline = $.extend(true, {}, JS9Inline);
+	JS9.inline = JS9.extend(true, {}, JS9Inline);
     }
     // set up the dynamic drive html window
     if( JS9.LIGHTWIN === "dhtml" ){
@@ -2739,32 +2739,32 @@ JS9.init = function(){
     }
     // if JS9 prefs have regionOpts, transfer them to Regions.opts
     if( {}.hasOwnProperty.call(JS9, "Regions") ){
-	$.extend(true, JS9.Regions.opts, JS9.regionOpts);
+	JS9.extend(true, JS9.Regions.opts, JS9.regionOpts);
     }
     delete JS9.regionOpts;
     // if JS9 prefs have catalogOpts, transfer them to Catalogs.opts
     if( {}.hasOwnProperty.call(JS9, "Catalogs") ){
-	$.extend(true, JS9.Catalogs.opts, JS9.catalogOpts);
+	JS9.extend(true, JS9.Catalogs.opts, JS9.catalogOpts);
     }
     delete JS9.catalogOpts;
     // if JS9 prefs have crosshairOpts, transfer them to Crosshair.opts
     if( {}.hasOwnProperty.call(JS9, "Crosshair") ){
-	$.extend(true, JS9.Crosshair.opts, JS9.crosshairOpts);
+	JS9.extend(true, JS9.Crosshair.opts, JS9.crosshairOpts);
     }
     delete JS9.crosshairOpts;
     // if JS9 prefs have gridOpts, transfer them to Grid.opts
     if( {}.hasOwnProperty.call(JS9, "Grid") ){
-	$.extend(true, JS9.Grid.opts, JS9.gridOpts);
+	JS9.extend(true, JS9.Grid.opts, JS9.gridOpts);
     }
     delete JS9.gridOpts;
     // if JS9 prefs have emscriptenOpts, transfer them to Module
     if( {}.hasOwnProperty.call(JS9, "Module") ){
-	$.extend(true, Module, JS9.emscriptenOpts);
+	JS9.extend(true, Module, JS9.emscriptenOpts);
     }
     delete JS9.emscriptenOpts;
     // if JS9 prefs have fabricOpts, transfer them to Fabric.opts
     if( {}.hasOwnProperty.call(JS9, "Fabric") ){
-	$.extend(true, JS9.Fabric.opts, JS9.fabricOpts);
+	JS9.extend(true, JS9.Fabric.opts, JS9.fabricOpts);
 	// incorporate our fabric defaults into fabric itself
 	for( key of Object.keys(JS9.Fabric.opts) ){
 	    fabric.Object.prototype[key] = JS9.Fabric.opts[key];
@@ -2822,7 +2822,7 @@ JS9.init = function(){
 	    try{ JS9.userOpts.displays = JSON.parse(uopts); }
 	    catch(ignore){ /* empty */ }
 	    if( JS9.userOpts.displays ){
-		$.extend(true, JS9.globalOpts, JS9.userOpts.displays);
+		JS9.extend(true, JS9.globalOpts, JS9.userOpts.displays);
 	    }
 	}
 	try{ uopts = localStorage.getItem("images"); }
@@ -2831,7 +2831,7 @@ JS9.init = function(){
 	    try{ JS9.userOpts.images = JSON.parse(uopts); }
 	    catch(ignore){ /* empty */ }
 	    if( JS9.userOpts.images ){
-		$.extend(true, JS9.imageOpts, JS9.userOpts.images);
+		JS9.extend(true, JS9.imageOpts, JS9.userOpts.images);
 	    }
 	}
 	// this gets replaced below
@@ -2847,7 +2847,7 @@ JS9.init = function(){
 	    try{ JS9.userOpts.regions = JSON.parse(uopts); }
 	    catch(ignore){ /* empty */ }
 	    if( JS9.userOpts.regions ){
-		$.extend(true, JS9.Regions.opts, JS9.userOpts.regions);
+		JS9.extend(true, JS9.Regions.opts, JS9.userOpts.regions);
 	    }
 	}
 	try{ uopts = localStorage.getItem("grid"); }
@@ -2856,7 +2856,7 @@ JS9.init = function(){
 	    try{ JS9.userOpts.images = JSON.parse(uopts); }
 	    catch(ignore){ /* empty */ }
 	    if( JS9.userOpts.images ){
-		$.extend(true, JS9.Grid.opts, JS9.userOpts.images);
+		JS9.extend(true, JS9.Grid.opts, JS9.userOpts.images);
 	    }
 	}
 	try{ uopts = localStorage.getItem("catalog"); }
@@ -2865,7 +2865,7 @@ JS9.init = function(){
 	    try{ JS9.userOpts.images = JSON.parse(uopts); }
 	    catch(ignore){ /* empty */ }
 	    if( JS9.userOpts.images ){
-		$.extend(true, JS9.Catalogs.Opts, JS9.userOpts.images);
+		JS9.extend(true, JS9.Catalogs.Opts, JS9.userOpts.images);
 	    }
 	}
     }

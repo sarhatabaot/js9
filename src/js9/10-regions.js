@@ -1275,7 +1275,7 @@ JS9.Regions.processConfigForm = function(form, obj, arr){
 			p1 = obj.pub.pts[0];
 			p2 = obj.pub.pts[1];
 		    }
-		    if( $.inArray("line",
+		    if( JS9.inArray("line",
 				  JS9.Regions.opts.noCenteredScaling) >= 0 ){
 			// leave p1 fixed
 			// https://math.stackexchange.com/questions/175896/finding-a-point-along-a-line-a-certain-distance-away-from-another-point
@@ -1309,7 +1309,7 @@ JS9.Regions.processConfigForm = function(form, obj, arr){
 			p1 = obj.pub.pts[0];
 			p2 = obj.pub.pts[1];
 		    }
-		    if( $.inArray("line",
+		    if( JS9.inArray("line",
 				  JS9.Regions.opts.noCenteredScaling) >= 0 ){
 			// leave p1 fixed
 			opts.pts = [p1, JS9.rotatePoint(p2, ang, p1)];
@@ -1338,7 +1338,7 @@ JS9.Regions.processConfigForm = function(form, obj, arr){
 	    break;
 	case "misc":
 	    if( val.trim() ){
-		try{ nopts = JSON.parse(val); $.extend(opts, nopts); }
+		try{ nopts = JSON.parse(val); JS9.extend(opts, nopts); }
 		catch(e){ JS9.error(`invalid json: ${val}`);}
 	    }
 	    break;
@@ -1412,7 +1412,7 @@ if( key === "strokeDashes" ){
 	return JSON.stringify(obj.strokeDashArray) !==
 	       JSON.stringify(val);
     }
-    if( $.isArray(val) ){
+    if( Array.isArray(val) ){
 	switch(val.length){
 	case 0:
 	    return false;
@@ -1592,12 +1592,12 @@ JS9.Regions.regionsConfigSetSelectFilter = function(el, def) {
 		defarr = ["!", "&&", "||"];
 		break;
 	    }
-	    if( $.inArray(lastval, defarr) >= 0 ){
+	    if( JS9.inArray(lastval, defarr) >= 0 ){
 		// if new and last val is of the same type, use || for union
 		// (intersection of same types, but non-identical, is null)
 		nval = `|| ${nval}`;
-	    } else if( $.inArray(lastval, grparr) >= 0 ||
-		       $.inArray(nval, grparr) >= 0    ){
+	    } else if( JS9.inArray(lastval, grparr) >= 0 ||
+		       JS9.inArray(nval, grparr) >= 0    ){
 		// if either is a group, use || for union
 		// (intersection of non-identical groups is null)
 		nval = `|| ${nval}`;
@@ -1659,7 +1659,7 @@ JS9.Regions.regionsConfigSetSelectMenu = function(im, form, key) {
     case "selectshape":
 	for(i=0, gots=[]; i<objs.length; i++){
 	    s = objs[i].shape;
-	    if( $.inArray(s, gots) < 0 ){
+	    if( JS9.inArray(s, gots) < 0 ){
 		el.append(`<option>${s}</option>`);
 		gots.push(s);
 	    }
@@ -1668,7 +1668,7 @@ JS9.Regions.regionsConfigSetSelectMenu = function(im, form, key) {
     case "selectcolor":
 	for(i=0, gots=[]; i<objs.length; i++){
 	    s = objs[i].color;
-	    if( $.inArray(s, gots) < 0 ){
+	    if( JS9.inArray(s, gots) < 0 ){
 		el.append(`<option>${s}</option>`);
 		gots.push(s);
 	    }
@@ -1678,7 +1678,7 @@ JS9.Regions.regionsConfigSetSelectMenu = function(im, form, key) {
 	for(i=0, gots=[]; i<objs.length; i++){
 	    s = objs[i].tags;
 	    for(j=0; j<s.length; j++){
-		if( $.inArray(s[j], gots) < 0 ){
+		if( JS9.inArray(s[j], gots) < 0 ){
 		    el.append(`<option>${s[j]}</option>`);
 		    gots.push(s[j]);
 		}
@@ -1689,7 +1689,7 @@ JS9.Regions.regionsConfigSetSelectMenu = function(im, form, key) {
 	for(i=0, gots=[]; i<objs.length; i++){
 	    if( objs[i].wcsconfig ){
 		s = objs[i].wcsconfig.wcssys;
-		if( $.inArray(s, gots) < 0 ){
+		if( JS9.inArray(s, gots) < 0 ){
 		    el.append(`<option>${s}</option>`);
 		    gots.push(s);
 		}
@@ -1918,19 +1918,19 @@ JS9.Regions.listRegions = function(which, opts, layerName){
 	    continue;
 	}
 	// preserving dcoords get handled specially
-	if( $.isArray(obj.params.preservedcoords) ){
+	if( Array.isArray(obj.params.preservedcoords) ){
 	    // make array of raw values to output
 	    for(j=0; j<obj.params.preservedcoords.length; j++){
 		key = obj.params.preservedcoords[j];
 		switch(key){
 		case "pts":
-		    if( $.inArray("dx", preservedcoords) < 0 ){
+		    if( JS9.inArray("dx", preservedcoords) < 0 ){
 			preservedcoords.push("dx");
 		    }
-		    if( $.inArray("dy", preservedcoords) < 0 ){
+		    if( JS9.inArray("dy", preservedcoords) < 0 ){
 			preservedcoords.push("dy");
 		    }
-		    if( $.inArray("points", preservedcoords) < 0 ){
+		    if( JS9.inArray("points", preservedcoords) < 0 ){
 			preservedcoords.push("points");
 		    }
 		    break;
@@ -2023,7 +2023,7 @@ JS9.Regions.listRegions = function(which, opts, layerName){
 	// save wcsconfig, if necessary
 	if( opts.savewcsconfig && region.wcsconfig   &&
 	    Object.keys(region.wcsconfig).length > 0 ){
-	    exports.wcsconfig = $.extend(true, {}, region.wcsconfig);
+	    exports.wcsconfig = JS9.extend(true, {}, region.wcsconfig);
 	} else {
 	    delete exports.wcsconfig;
 	}
@@ -2290,7 +2290,7 @@ JS9.Regions.parseRegions = function(s, opts){
 	}
 	// merge with ds9 opts
 	if( ds9props ){
-	    tobj.opts = $.extend({}, ds9props, tobj.opts);
+	    tobj.opts = JS9.extend({}, ds9props, tobj.opts);
 	}
 	// separate the region args into an array
 	tarr = parrexp.exec(s);
@@ -2428,7 +2428,7 @@ JS9.Regions.parseRegions = function(s, opts){
 	    // if this is a region ...
 	    if( robj.isregion ){
 		// start afresh or with opts from the region string
-		obj = $.extend(true, {}, robj.opts);
+		obj = JS9.extend(true, {}, robj.opts);
 		// save the shape
 		obj.shape = robj.cmd;
 		// save the current wcssys for editing
@@ -2438,7 +2438,7 @@ JS9.Regions.parseRegions = function(s, opts){
 		    obj.shape !== "line"    &&
 		    obj.shape !== "polygon" ){
 		    // get image position
-		    $.extend(obj, getipos(robj.args[0], robj.args[1]));
+		    JS9.extend(obj, getipos(robj.args[0], robj.args[1]));
 		}
 		// if textOpts has ra, dec, save the wcssys, it may be
 		// different by the time textOpts gets processed
@@ -2787,10 +2787,10 @@ JS9.Regions.changeRegionTags = function(which, addtags, remtags){
     which = which || "all";
     addtags = addtags || [];
     remtags = remtags || [];
-    if( !$.isArray(addtags) ){
+    if( !Array.isArray(addtags) ){
 	addtags = addtags.split(",").map(i=>i.trim());
     }
-    if( !$.isArray(remtags) ){
+    if( !Array.isArray(remtags) ){
 	remtags = remtags.split(",").map(i=>i.trim());
     }
     s = this.getShapes("regions", which);
@@ -2802,13 +2802,13 @@ JS9.Regions.changeRegionTags = function(which, addtags, remtags){
 	tags = [];
 	// add new tags, unless they already exist
 	for(j=0; j<addtags.length; j++){
-	    if( $.inArray(addtags[j], ctags) < 0 ){
+	    if( JS9.inArray(addtags[j], ctags) < 0 ){
 		tags.push(addtags[j]);
 	    }
 	}
 	// copy current tags, except the one we want to remove
 	for(j=0; j<ctags.length; j++){
-	    if( $.inArray(ctags[j], remtags) < 0 ){
+	    if( JS9.inArray(ctags[j], remtags) < 0 ){
 		tags.push(ctags[j]);
 	    }
 	}
