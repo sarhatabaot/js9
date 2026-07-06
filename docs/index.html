@@ -7,11 +7,18 @@ templateEngineOverride: liquid
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    /* apply the saved theme before paint (no flash of the wrong theme) */
+    (function(){ try { var t = localStorage.getItem("js9-theme");
+      if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    } catch(e){} })();
+  </script>
   <meta name="description" content="JS9: {{ site.tagline }} — a browser-based FITS viewer (WebAssembly, client-side).">
   <link type="image/x-icon" rel="shortcut icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="images/js9-apple-touch-icon.png">
   <link type="text/css" rel="stylesheet" href="js9support.css">
   <link type="text/css" rel="stylesheet" href="js9.css">
+  <link rel="stylesheet" href="vendor/highlight.css">
   <script type="text/javascript" src="js9prefs.js"></script>
   <script type="text/javascript" src="js9support.min.js"></script>
   <script type="text/javascript" src="js9.min.js"></script>
@@ -19,15 +26,24 @@ templateEngineOverride: liquid
   <title>JS9 &mdash; {{ site.tagline }}</title>
   <style>
     :root { --accent:#2b6cb0; --accent-d:#1e4e8c; --ink:#1a202c; --muted:#5a6675;
-      --border:#e2e8f0; --bg-soft:#f7fafc; --maxw:1080px; }
+      --border:#e2e8f0; --bg:#fff; --bg-soft:#f7fafc; --maxw:1080px; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --accent:#58a6ff; --accent-d:#388bfd;
+        --ink:#e6edf3; --muted:#8b98a5; --border:#30363d; --bg:#0d1117; --bg-soft:#161b22; }
+    }
+    :root[data-theme="dark"] { --accent:#58a6ff; --accent-d:#388bfd;
+      --ink:#e6edf3; --muted:#8b98a5; --border:#30363d; --bg:#0d1117; --bg-soft:#161b22; }
     * { box-sizing:border-box; }
-    body { margin:0; color:var(--ink); background:#fff;
+    body { margin:0; color:var(--ink); background:var(--bg);
       font:16px/1.6 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
     a { color:var(--accent); }
     .wrap { max-width:var(--maxw); margin:0 auto; padding:0 20px; }
     /* nav */
-    .nav { position:sticky; top:0; z-index:20; background:#fff;
+    .nav { position:sticky; top:0; z-index:20; background:var(--bg);
       border-bottom:1px solid var(--border); }
+    .iconBtn { background:none; border:1px solid var(--border); border-radius:8px;
+      width:34px; height:34px; font-size:16px; cursor:pointer; color:var(--ink); }
+    .iconBtn:hover { border-color:var(--accent); }
     .nav .wrap { display:flex; align-items:center; gap:20px; height:56px; }
     .brand { display:flex; align-items:center; gap:8px; font-weight:700;
       text-decoration:none; color:var(--ink); }
@@ -58,6 +74,14 @@ templateEngineOverride: liquid
     pre.code { background:#0f172a; color:#e2e8f0; padding:18px 20px; border-radius:10px;
       overflow:auto; font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
       max-width:720px; margin:0 auto; }
+    /* copy-to-clipboard button on the quickstart code block (shown on hover) */
+    .codeWrap { position:relative; max-width:720px; margin:0 auto; }
+    .codeWrap pre.code { max-width:none; margin:0; }
+    .copyBtn { position:absolute; top:8px; right:8px; opacity:0;
+      background:rgba(148,163,184,.18); color:#e2e8f0; border:1px solid rgba(148,163,184,.32);
+      border-radius:6px; padding:3px 10px; font-size:12px; cursor:pointer; transition:opacity .15s; }
+    .codeWrap:hover .copyBtn, .copyBtn:focus-visible { opacity:1; }
+    .copyBtn:hover { background:rgba(148,163,184,.32); }
     .quick .note { text-align:center; color:var(--muted); margin-top:14px; font-size:14px; }
     /* features */
     .features { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
@@ -83,6 +107,8 @@ templateEngineOverride: liquid
         <a href="help/start.html">Docs</a>
         <a href="demos/js9editor.html">Demos</a>
         <a href="{{ site.repo }}" target="_blank" rel="noopener">GitHub</a>
+        <button id="themeToggle" class="iconBtn" type="button"
+                aria-label="Toggle light/dark theme" title="Toggle light/dark theme">&#9681;</button>
       </nav>
     </div>
   </header>
@@ -171,5 +197,20 @@ templateEngineOverride: liquid
     </div>
   </footer>
 
+  <script src="vendor/highlight.js"></script>
+  <script>
+    (function(){
+      var root = document.documentElement, b = document.getElementById("themeToggle");
+      function effective(){
+        return root.getAttribute("data-theme") ||
+          (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      }
+      if (b) b.addEventListener("click", function(){
+        var next = effective() === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        try { localStorage.setItem("js9-theme", next); } catch(e){}
+      });
+    })();
+  </script>
 </body>
 </html>

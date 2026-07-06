@@ -80,6 +80,7 @@
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.0",
     "esbuild": "^0.28.1",
+    "highlight.js": "^11.11.1",
     "minimist": "^1.2.7",
     "open": "^8.2.1",
     "pagefind": "^1.5.2",

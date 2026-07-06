@@ -18,6 +18,7 @@ import { readFile, writeFile, mkdir, copyFile, readdir, rm } from "node:fs/promi
 import { Buffer } from "node:buffer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { build as esbuildBundle } from "esbuild";
 import { minifyFile } from "./minify.mjs";
 import { allinoneGifs, sunIconCss } from "./allinone-assets.mjs";
 
@@ -197,6 +198,19 @@ async function main() {
   // the site prefs/config lives with the helper (server/); the browser loads it too
   await copyFile(abs("server/js9Prefs.json"), out("js9Prefs.json"));
   console.log(`  _site/ <- ${RUNTIME.length + 1} runtime files`);
+
+  // docs: self-contained syntax-highlighting bundle (esbuild bundles highlight.js
+  // core + only the languages our docs use) plus its dark theme CSS
+  await mkdir(out("vendor"), { recursive: true });
+  await esbuildBundle({
+    entryPoints: [abs("scripts/highlight-entry.mjs")],
+    outfile: out("vendor/highlight.js"),
+    bundle: true, minify: true, format: "iife", legalComments: "none",
+    logLevel: "warning",
+  });
+  await copyFile(abs("node_modules/highlight.js/styles/github-dark.min.css"),
+                 out("vendor/highlight.css"));
+  console.log("  _site/vendor/highlight.{js,css}");
 
   console.log("done.");
 }
