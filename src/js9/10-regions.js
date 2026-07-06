@@ -314,85 +314,8 @@ JS9.Regions.initConfigForm = function(obj, opts){
     if( obj.type !== "text" && obj.params.children ){
 	$(`${form}.childtext`).removeClass("nodisplay");
     }
-    // init options, if necessary
-    if( opts.firsttime ){
-	// desktop: display file browser
-	if( window.electron ){
-	    $(form).find(".rsavebrowse, .rconfigbrowse")
-		.removeClass("nodisplay");
-	}
-	// multi "cur" works off selected, not current, regions
-	if( multi ){
-	    $(form).find("label[for='savecur']")
-		.text("sel");
-	    $(form).find("input[id='savecur']")
-		.data("tooltip", "save selected regions");
-	    $(form).find("[id='selectreg']")
-		.prop("checked", true);
-	} else {
-	    $(form).find(".checkboxes").removeClass("nodisplay");
-	}
-	// add wcs button options
-	if( JS9.favorites.wcs && JS9.favorites.wcs.length ){
-	    // display wcs buttons
-	    el = $(form).find(".rwcsbuttons").removeClass("nodisplay");
-	    // add buttons to button container, if necessary
-	    el2 = el.find(".rwcsbuttoncontainer");
-	    if( el2.length && !el2.find(".rwcsbutton").length ){
-		// add radio buttons for each favorite wcs
-		for(i=0; i<JS9.favorites.wcs.length; i++){
-		    fav = JS9.favorites.wcs[i];
-		    if( typeof fav === "string" ){
-			// format: "wcs:displayedname"
-			arr = fav.split(":");
-		    } else {
-			// format: ["wcs", "displayedname"]
-			arr = fav;
-		    }
-		    s =  arr[0];
-		    s2 = arr[1] || s;
-		    if( opts.type === "save" ){
-			s3 = `rsavecol_R${i+2}`;
-			s4 = "rsaveradio";
-		    } else {
-			s3 = `rconfigcol_R${i+2}`;
-			s4 = "rconfigradio";
-		    }
-		    el2.append(`<span class='rconfigcol_R rwcsbutton ${s3}'>
-                                <input type='radio'
-                                       id='rwcsbutton_${s}'
-                                       name='rwcsbutton'
-                                       class='rwcsradio ${s4}}'
-                                       value='${s}'
-                                       data-tooltip='save using ${s} wcs'
-                                       onclick='
-                                           $(this).closest("form")
-                                           .find("[name=savewcs]")
-                                           .val("${s}")
-                                           .trigger("change");'>
-                                <label for='rwcsbutton_${s}'>${s2}</label>
-                                </span>`);
-		}
-		// init the radio buttons
-		$(form).find('.rwcsbuttons').find(`[value='${wcssys}']`)
-		    .prop('checked', true);
-	    }
-	}
-	// alternate colorpicker
-	if( !JS9.globalOpts.internalColorPicker ||
-	    !$.fn.spectrum.inputTypeColorSupport() ){
-	    el = $(form).find(`input[name='colorPicker']`)
-	    el.spectrum({showButtons: false,
-			 showInput: false,
-			 preferredFormat: "hex6"});
-	    // when the color is changed via the colorpicker
-	    el.on('move.spectrum', (evt, tinycolor) => {
-		let color = tinycolor.toHexString();
-		$(form).find("input[name='color']").val(color);
-		$(form).data("colorpicker", color);
-	    });
-         }
-    }
+    // first-time-only form setup
+    JS9.Regions._initConfigFormFirstTime(form, opts, multi, wcssys);
     // checkboxes
     if( obj.params.listonchange === undefined ){
 	obj.params.listonchange = false;
@@ -600,6 +523,92 @@ JS9.Regions.initConfigForm = function(obj, opts){
 		$(el)[0].childNodes[0].nodeValue = otitle;
 	    }
 	});
+    }
+};
+
+// first-time-only region config form setup: file browsers (desktop), multi-
+// select tweaks, wcs favorite buttons, and the alternate colorpicker.
+// Extracted from initConfigForm; `this`-free.
+JS9.Regions._initConfigFormFirstTime = function(form, opts, multi, wcssys){
+    let el, el2, i, fav, arr, s, s2, s3, s4;
+    // init options, if necessary
+    if( opts.firsttime ){
+	// desktop: display file browser
+	if( window.electron ){
+	    $(form).find(".rsavebrowse, .rconfigbrowse")
+		.removeClass("nodisplay");
+	}
+	// multi "cur" works off selected, not current, regions
+	if( multi ){
+	    $(form).find("label[for='savecur']")
+		.text("sel");
+	    $(form).find("input[id='savecur']")
+		.data("tooltip", "save selected regions");
+	    $(form).find("[id='selectreg']")
+		.prop("checked", true);
+	} else {
+	    $(form).find(".checkboxes").removeClass("nodisplay");
+	}
+	// add wcs button options
+	if( JS9.favorites.wcs && JS9.favorites.wcs.length ){
+	    // display wcs buttons
+	    el = $(form).find(".rwcsbuttons").removeClass("nodisplay");
+	    // add buttons to button container, if necessary
+	    el2 = el.find(".rwcsbuttoncontainer");
+	    if( el2.length && !el2.find(".rwcsbutton").length ){
+		// add radio buttons for each favorite wcs
+		for(i=0; i<JS9.favorites.wcs.length; i++){
+		    fav = JS9.favorites.wcs[i];
+		    if( typeof fav === "string" ){
+			// format: "wcs:displayedname"
+			arr = fav.split(":");
+		    } else {
+			// format: ["wcs", "displayedname"]
+			arr = fav;
+		    }
+		    s =  arr[0];
+		    s2 = arr[1] || s;
+		    if( opts.type === "save" ){
+			s3 = `rsavecol_R${i+2}`;
+			s4 = "rsaveradio";
+		    } else {
+			s3 = `rconfigcol_R${i+2}`;
+			s4 = "rconfigradio";
+		    }
+		    el2.append(`<span class='rconfigcol_R rwcsbutton ${s3}'>
+                                <input type='radio'
+                                       id='rwcsbutton_${s}'
+                                       name='rwcsbutton'
+                                       class='rwcsradio ${s4}}'
+                                       value='${s}'
+                                       data-tooltip='save using ${s} wcs'
+                                       onclick='
+                                           $(this).closest("form")
+                                           .find("[name=savewcs]")
+                                           .val("${s}")
+                                           .trigger("change");'>
+                                <label for='rwcsbutton_${s}'>${s2}</label>
+                                </span>`);
+		}
+		// init the radio buttons
+		$(form).find('.rwcsbuttons').find(`[value='${wcssys}']`)
+		    .prop('checked', true);
+	    }
+	}
+	// alternate colorpicker
+	if( !JS9.globalOpts.internalColorPicker ||
+	    !$.fn.spectrum.inputTypeColorSupport() ){
+	    el = $(form).find(`input[name='colorPicker']`)
+	    el.spectrum({showButtons: false,
+			 showInput: false,
+			 preferredFormat: "hex6"});
+	    // when the color is changed via the colorpicker
+	    el.on('move.spectrum', (evt, tinycolor) => {
+		let color = tinycolor.toHexString();
+		$(form).find("input[name='color']").val(color);
+		$(form).data("colorpicker", color);
+	    });
+         }
     }
 };
 
