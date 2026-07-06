@@ -135,6 +135,7 @@ JS9.Regions.init = function(layerName){
     JS9.Image.prototype.toggleRegionTags = JS9.Regions.toggleRegionTags;
     JS9.Image.prototype.unremoveRegions = JS9.Regions.unremoveRegions;
     JS9.Image.prototype.initRegionsForm = JS9.Regions.initConfigForm;
+    JS9.Image.prototype._populateConfigFormFields = JS9.Regions._populateConfigFormFields;
     JS9.Image.prototype.displayRegionsForm = JS9.Regions.displayConfigForm;
     JS9.Image.prototype.processRegionsForm = JS9.Regions.processConfigForm;
     // init the display shape layer
@@ -259,22 +260,6 @@ JS9.Regions.initConfigForm = function(obj, opts){
 	pub: {shape: "multi", wcsconfig: {}},
 	params: {}
     };
-    const fmt= (val) => {
-	if( val === undefined ){
-	    return undefined;
-	}
-	if( (typeof val === "number") && (val % 1 !== 0) ){
-	    val = Math.round((val + 0.00001) * 10000) / 10000;
-	}
-	return(String(val));
-    };
-    const replaceNewline = (s) => {
-	const nl = String.fromCharCode(13, 10);
-	if( typeof s === "string" ){
-	    return s.replace(/\\n/g, nl);
-	}
-	return s;
-    };
     // which wcssys do we use? edit version, if available
     if( obj && obj.pub ){
 	if( obj.pub.wcsconfig && obj.pub.wcsconfig.wcssys  ){
@@ -319,6 +304,326 @@ JS9.Regions.initConfigForm = function(obj, opts){
 	$(element).removeClass("nodisplay");
     });
     // fill in form values based on current values in the shape object
+    this._populateConfigFormFields(form, obj, wcssys, wcsinfo, multi, cmode);
+    // display or hide options
+    if( multi || !this.raw.wcs || this.raw.wcs < 0 ){
+	$(form).find("[name='wcssys']").hide();
+    }
+    // edit-able parameters
+    // child text display for shapes, editable if no existing children yet
+    if( obj.type !== "text" && obj.params.children ){
+	$(`${form}.childtext`).removeClass("nodisplay");
+    }
+    // init options, if necessary
+    if( opts.firsttime ){
+	// desktop: display file browser
+	if( window.electron ){
+	    $(form).find(".rsavebrowse, .rconfigbrowse")
+		.removeClass("nodisplay");
+	}
+	// multi "cur" works off selected, not current, regions
+	if( multi ){
+	    $(form).find("label[for='savecur']")
+		.text("sel");
+	    $(form).find("input[id='savecur']")
+		.data("tooltip", "save selected regions");
+	    $(form).find("[id='selectreg']")
+		.prop("checked", true);
+	} else {
+	    $(form).find(".checkboxes").removeClass("nodisplay");
+	}
+	// add wcs button options
+	if( JS9.favorites.wcs && JS9.favorites.wcs.length ){
+	    // display wcs buttons
+	    el = $(form).find(".rwcsbuttons").removeClass("nodisplay");
+	    // add buttons to button container, if necessary
+	    el2 = el.find(".rwcsbuttoncontainer");
+	    if( el2.length && !el2.find(".rwcsbutton").length ){
+		// add radio buttons for each favorite wcs
+		for(i=0; i<JS9.favorites.wcs.length; i++){
+		    fav = JS9.favorites.wcs[i];
+		    if( typeof fav === "string" ){
+			// format: "wcs:displayedname"
+			arr = fav.split(":");
+		    } else {
+			// format: ["wcs", "displayedname"]
+			arr = fav;
+		    }
+		    s =  arr[0];
+		    s2 = arr[1] || s;
+		    if( opts.type === "save" ){
+			s3 = `rsavecol_R${i+2}`;
+			s4 = "rsaveradio";
+		    } else {
+			s3 = `rconfigcol_R${i+2}`;
+			s4 = "rconfigradio";
+		    }
+		    el2.append(`<span class='rconfigcol_R rwcsbutton ${s3}'>
+                                <input type='radio'
+                                       id='rwcsbutton_${s}'
+                                       name='rwcsbutton'
+                                       class='rwcsradio ${s4}}'
+                                       value='${s}'
+                                       data-tooltip='save using ${s} wcs'
+                                       onclick='
+                                           $(this).closest("form")
+                                           .find("[name=savewcs]")
+                                           .val("${s}")
+                                           .trigger("change");'>
+                                <label for='rwcsbutton_${s}'>${s2}</label>
+                                </span>`);
+		}
+		// init the radio buttons
+		$(form).find('.rwcsbuttons').find(`[value='${wcssys}']`)
+		    .prop('checked', true);
+	    }
+	}
+	// alternate colorpicker
+	if( !JS9.globalOpts.internalColorPicker ||
+	    !$.fn.spectrum.inputTypeColorSupport() ){
+	    el = $(form).find(`input[name='colorPicker']`)
+	    el.spectrum({showButtons: false,
+			 showInput: false,
+			 preferredFormat: "hex6"});
+	    // when the color is changed via the colorpicker
+	    el.on('move.spectrum', (evt, tinycolor) => {
+		let color = tinycolor.toHexString();
+		$(form).find("input[name='color']").val(color);
+		$(form).data("colorpicker", color);
+	    });
+         }
+    }
+    // checkboxes
+    if( obj.params.listonchange === undefined ){
+	obj.params.listonchange = false;
+    }
+    if( obj.params.listonchange ){
+	$(`${form}[name='listonchange']`).prop("checked", true);
+    } else {
+	$(`${form}[name='listonchange']`).prop("checked", false);
+    }
+    if( obj.params.changeable !== false ){
+	$(`${form}[name='locked']`).prop("checked", false);
+    } else {
+	$(`${form}[name='locked']`).prop("checked", true);
+    }
+    if( obj.params.sticky ){
+	$(`${form}[name='sticky']`).prop("checked", true);
+    } else {
+	$(`${form}[name='sticky']`).prop("checked", false);
+    }
+    // save regions processing
+    $(`${form}[id='includejson']`)
+	.prop("checked", JS9.globalOpts.regIncludeJSON);
+    $(`${form}[id='includecomments']`)
+	.prop("checked", JS9.globalOpts.regIncludeComments);
+    $(`${form}[id='savedcoords']`)
+	.prop("checked", JS9.globalOpts.regSaveDCoords);
+    $(`${form}[id='includewcs']`)
+	.prop("checked", JS9.globalOpts.csvIncludeWCS);
+    // unset all save format radio buttons
+    $(form).find(`input[name='saveformat']`)
+	.prop("checked", false);
+    // set save format based on global value
+    $(form).find(`input[value='${JS9.globalOpts.regSaveFormat}']`)
+	.prop("checked", true);
+    // unset all save wcs radio buttons
+    $(form).find(`input[name='rwcsbutton']`)
+	.prop("checked", false);
+    // set save wcs based on global value
+    $(form).find(`input[value='${JS9.globalOpts.regSaveWCS||wcssys}']`)
+	.prop("checked", true);
+    // set which regions get saved
+    if( opts.type === "save" ){
+	s = `save${JS9.globalOpts.regSaveWhich1}`;
+    } else {
+	s = `save${JS9.globalOpts.regSaveWhich2}`;
+    }
+    $(`${form}[id='${s}']`).prop("checked", true);
+    // triggering the savefile will cause format to be updated
+    // and focus to be set
+    if( opts.type === "save" ){
+	$(form).find(`input[name='savefile']`).trigger("change");
+    }
+    // style menus
+    $(form).find(`input[name='strokeMenu']`).prop("selectedIndex", 0);
+    $(form).find(`input[name='dashesMenu']`).prop("selectedIndex", 0);
+    // shape specific processing
+    if( multi ){
+	$(form).find(".regid").hide();
+	$(form).find(".edit").hide();
+	$(form).find(".childtext").hide();
+	$(form).find(".multi").removeClass("nodisplay");
+	if( opts.setmode <= 0 ){
+	    $(form).find(`[name='multitext']`).val("");
+	    $(form).find(`input[name="color"]`).val("");
+	    $(form).find(`input[name="strokeWidth"]`).val("");
+	    $(form).find(`input[name="strokeDashes"]`).val("");
+	    $(form).data("strokewidth", "");
+	    $(form).data("strokedashes", "");
+	    if( opts.setmode < 0 ){
+		$(form).find(`[name='selectfilter']`).val("");
+		$(form).data("selectfilter", "");
+	    }
+	} else {
+	    ao = this.layers.regions.canvas.getActiveObject();
+	    if( ao && ao.type === "group" && !ao.params ){
+		objs = ao.getObjects();
+		if( objs && objs.length && objs[0] && objs[0].params ){
+		    grp = objs[0].params.groupid;
+		}
+		if( grp ){
+		    $(form).find(`[name='selectfilter']`).val(grp);
+		    $(form).data('selectfilter', grp);
+		    s = this.listGroups(grp);
+		    s2 = s.substring(s.indexOf("\n")+1);
+		    $(form).find(`[name='multitext']`).val(s2);
+		} else {
+		    $(form).find(`[name='multitext']`).val("");
+		}
+	    } else if( ao ){
+		ao = this.layers.regions.canvas.getActiveObjects();
+		for(i=0, s=[], s2=""; i<ao.length; i++){
+		    o = ao[i];
+		    if( o.type === "group" && !o.params ){
+			s2 += `${this.lookupGroup(o)}\n`;
+		    } else {
+			s.push(o);
+		    }
+		}
+		s3 = this.listRegions(s, {mode: 1,
+					  includejson: false,
+					  includecomments: false})
+		    .replace(/ *; */g, "\n");
+		s2 = s2 + s3.substring(s3.indexOf("\n")+1);
+		if( s2 ){
+		    s4 = "selected";
+		    $(form).find(`[name='selectfilter']`).val(s4);
+		    $(form).data('selectfilter', s4);
+		    $(form).find(`[name='multitext']`).val(s2);
+		}
+	    } else {
+		s =  $(form).find(`[name='selectfilter']`).val() || "selected";
+		s2 = this.listRegions(s, {mode: 1,
+					 includejson: false,
+					 includecomments: false})
+		    .replace(/ *; */g, "\n");
+		if( s2 ){
+		    $(form).find(`[name='selectfilter']`).val(s);
+		    $(form).data('selectfilter', s);
+		    $(form).find(`[name='multitext']`).val(s2);
+		}
+	    }
+	}
+    } else {
+	// grey-out read-only text input
+	$(form).find("input:text[readonly]")
+	    .css("border-color", "#A5A5A5")
+	    .css("background", "#E9E9E9");
+	// regular text input
+	$(form).find("input:text:not([readonly])")
+	    .css("border-color", "#E9E9E9")
+	    .css("background", "white");
+	switch(obj.pub.shape){
+	case "box":
+	case "cross":
+	case "ellipse":
+	    $(`${form}.angle`).removeClass("nodisplay");
+	    break;
+	case "text":
+	    $(`${form}.textangle`).removeClass("nodisplay");
+	    break;
+	case "line":
+	    if( obj.pub.pts && obj.pub.pts.length === 2 ){
+		$(`${form}.linelength`).removeClass("nodisplay");
+		$(`${form}.lineangle`).removeClass("nodisplay");
+	    } else {
+		$(`${form}.linelength`).addClass("nodisplay");
+		$(`${form}.lineangle`).addClass("nodisplay");
+	    }
+	    break;
+	default:
+	    break;
+	}
+    }
+    // save options
+    $(`${form}.xtrareg`).addClass("nodisplay");
+    $(`${form}.xtracsv`).addClass("nodisplay");
+    $(`${form}.xtrasvg`).addClass("nodisplay");
+    $(`${form}.xtra${JS9.globalOpts.regSaveFormat}`).removeClass("nodisplay");
+    // save image for later processing
+    $(form).data("im", this);
+    // save shape object for later processing
+    $(form).data("shape", obj);
+    // save the window id for later processing
+    $(form).data("winid", winid);
+    // save multi state for later processing
+    $(form).data("multi", multi);
+    // even triggers
+    if( JS9.BROWSER[3] ){
+	mover = "touchstart";
+	mout = "touchend";
+    } else {
+	mover = "mouseover";
+	mout = "mouseout";
+    }
+    // for save form, focus on filename
+    if( opts.type === "save" ){
+	$(form).on(mover, () => {
+	    $(form).find(`input[name='savefile']`).focus();
+	});
+    }
+    // add tooltip callbacks (not mobile: ios buttons stop working!)
+    if( !$(form).data("tooltipInit") ){
+	$(form).data("tooltipInit", true);
+	$(".rconfigcol_R, .rsavecol_R").on(mover, (e) => {
+	    const target = e.currentTarget;
+	    const tooltip = $(target)
+		  .find("input, textarea, span")
+		  .data("tooltip");
+	    const el = $(target)
+		  .closest(JS9.lightOpts[JS9.LIGHTWIN].top)
+		  .find(JS9.lightOpts[JS9.LIGHTWIN].dragBar);
+	    if( tooltip && el.length ){
+		// change title: see dhtmlwindow.js load() @line 130
+		otitle = $(el)[0].childNodes[0].nodeValue.replace(/:.*/,"");
+		$(el)[0].childNodes[0].nodeValue = `${otitle}: ${tooltip}`;
+	    }
+	});
+	$(".rconfigcol_R, .rsavecol_R").on(mout, (e) => {
+	    const target = e.currentTarget;
+	    const el = $(target)
+		  .closest(JS9.lightOpts[JS9.LIGHTWIN].top)
+		  .find(JS9.lightOpts[JS9.LIGHTWIN].dragBar);
+	    if( el.length ){
+		otitle = $(el)[0].childNodes[0].nodeValue.replace(/:.*/,"");
+		$(el)[0].childNodes[0].nodeValue = otitle;
+	    }
+	});
+    }
+};
+
+// populate the region config form's .val fields from the region object:
+// compute and set each field's value (position, size, angle, color, tags,
+// wcs, ...). Extracted from initConfigForm. call using image context.
+JS9.Regions._populateConfigFormFields = function(form, obj, wcssys, wcsinfo, multi, cmode){
+    let key, val, el, i, p1, p2, twcssys;
+    const fmt= (val) => {
+	if( val === undefined ){
+	    return undefined;
+	}
+	if( (typeof val === "number") && (val % 1 !== 0) ){
+	    val = Math.round((val + 0.00001) * 10000) / 10000;
+	}
+	return(String(val));
+    };
+    const replaceNewline = (s) => {
+	const nl = String.fromCharCode(13, 10);
+	if( typeof s === "string" ){
+	    return s.replace(/\\n/g, nl);
+	}
+	return s;
+    };
     $(`${form}.val`).each((index, element) => {
 	val = "";
 	key = $(element).attr("name");
@@ -630,302 +935,6 @@ JS9.Regions.initConfigForm = function(obj, opts){
 	}
 	$(element).val(val);
     });
-    // display or hide options
-    if( multi || !this.raw.wcs || this.raw.wcs < 0 ){
-	$(form).find("[name='wcssys']").hide();
-    }
-    // edit-able parameters
-    // child text display for shapes, editable if no existing children yet
-    if( obj.type !== "text" && obj.params.children ){
-	$(`${form}.childtext`).removeClass("nodisplay");
-    }
-    // init options, if necessary
-    if( opts.firsttime ){
-	// desktop: display file browser
-	if( window.electron ){
-	    $(form).find(".rsavebrowse, .rconfigbrowse")
-		.removeClass("nodisplay");
-	}
-	// multi "cur" works off selected, not current, regions
-	if( multi ){
-	    $(form).find("label[for='savecur']")
-		.text("sel");
-	    $(form).find("input[id='savecur']")
-		.data("tooltip", "save selected regions");
-	    $(form).find("[id='selectreg']")
-		.prop("checked", true);
-	} else {
-	    $(form).find(".checkboxes").removeClass("nodisplay");
-	}
-	// add wcs button options
-	if( JS9.favorites.wcs && JS9.favorites.wcs.length ){
-	    // display wcs buttons
-	    el = $(form).find(".rwcsbuttons").removeClass("nodisplay");
-	    // add buttons to button container, if necessary
-	    el2 = el.find(".rwcsbuttoncontainer");
-	    if( el2.length && !el2.find(".rwcsbutton").length ){
-		// add radio buttons for each favorite wcs
-		for(i=0; i<JS9.favorites.wcs.length; i++){
-		    fav = JS9.favorites.wcs[i];
-		    if( typeof fav === "string" ){
-			// format: "wcs:displayedname"
-			arr = fav.split(":");
-		    } else {
-			// format: ["wcs", "displayedname"]
-			arr = fav;
-		    }
-		    s =  arr[0];
-		    s2 = arr[1] || s;
-		    if( opts.type === "save" ){
-			s3 = `rsavecol_R${i+2}`;
-			s4 = "rsaveradio";
-		    } else {
-			s3 = `rconfigcol_R${i+2}`;
-			s4 = "rconfigradio";
-		    }
-		    el2.append(`<span class='rconfigcol_R rwcsbutton ${s3}'>
-                                <input type='radio'
-                                       id='rwcsbutton_${s}'
-                                       name='rwcsbutton'
-                                       class='rwcsradio ${s4}}'
-                                       value='${s}'
-                                       data-tooltip='save using ${s} wcs'
-                                       onclick='
-                                           $(this).closest("form")
-                                           .find("[name=savewcs]")
-                                           .val("${s}")
-                                           .trigger("change");'>
-                                <label for='rwcsbutton_${s}'>${s2}</label>
-                                </span>`);
-		}
-		// init the radio buttons
-		$(form).find('.rwcsbuttons').find(`[value='${wcssys}']`)
-		    .prop('checked', true);
-	    }
-	}
-	// alternate colorpicker
-	if( !JS9.globalOpts.internalColorPicker ||
-	    !$.fn.spectrum.inputTypeColorSupport() ){
-	    el = $(form).find(`input[name='colorPicker']`)
-	    el.spectrum({showButtons: false,
-			 showInput: false,
-			 preferredFormat: "hex6"});
-	    // when the color is changed via the colorpicker
-	    el.on('move.spectrum', (evt, tinycolor) => {
-		let color = tinycolor.toHexString();
-		$(form).find("input[name='color']").val(color);
-		$(form).data("colorpicker", color);
-	    });
-         }
-    }
-    // checkboxes
-    if( obj.params.listonchange === undefined ){
-	obj.params.listonchange = false;
-    }
-    if( obj.params.listonchange ){
-	$(`${form}[name='listonchange']`).prop("checked", true);
-    } else {
-	$(`${form}[name='listonchange']`).prop("checked", false);
-    }
-    if( obj.params.changeable !== false ){
-	$(`${form}[name='locked']`).prop("checked", false);
-    } else {
-	$(`${form}[name='locked']`).prop("checked", true);
-    }
-    if( obj.params.sticky ){
-	$(`${form}[name='sticky']`).prop("checked", true);
-    } else {
-	$(`${form}[name='sticky']`).prop("checked", false);
-    }
-    // save regions processing
-    $(`${form}[id='includejson']`)
-	.prop("checked", JS9.globalOpts.regIncludeJSON);
-    $(`${form}[id='includecomments']`)
-	.prop("checked", JS9.globalOpts.regIncludeComments);
-    $(`${form}[id='savedcoords']`)
-	.prop("checked", JS9.globalOpts.regSaveDCoords);
-    $(`${form}[id='includewcs']`)
-	.prop("checked", JS9.globalOpts.csvIncludeWCS);
-    // unset all save format radio buttons
-    $(form).find(`input[name='saveformat']`)
-	.prop("checked", false);
-    // set save format based on global value
-    $(form).find(`input[value='${JS9.globalOpts.regSaveFormat}']`)
-	.prop("checked", true);
-    // unset all save wcs radio buttons
-    $(form).find(`input[name='rwcsbutton']`)
-	.prop("checked", false);
-    // set save wcs based on global value
-    $(form).find(`input[value='${JS9.globalOpts.regSaveWCS||wcssys}']`)
-	.prop("checked", true);
-    // set which regions get saved
-    if( opts.type === "save" ){
-	s = `save${JS9.globalOpts.regSaveWhich1}`;
-    } else {
-	s = `save${JS9.globalOpts.regSaveWhich2}`;
-    }
-    $(`${form}[id='${s}']`).prop("checked", true);
-    // triggering the savefile will cause format to be updated
-    // and focus to be set
-    if( opts.type === "save" ){
-	$(form).find(`input[name='savefile']`).trigger("change");
-    }
-    // style menus
-    $(form).find(`input[name='strokeMenu']`).prop("selectedIndex", 0);
-    $(form).find(`input[name='dashesMenu']`).prop("selectedIndex", 0);
-    // shape specific processing
-    if( multi ){
-	$(form).find(".regid").hide();
-	$(form).find(".edit").hide();
-	$(form).find(".childtext").hide();
-	$(form).find(".multi").removeClass("nodisplay");
-	if( opts.setmode <= 0 ){
-	    $(form).find(`[name='multitext']`).val("");
-	    $(form).find(`input[name="color"]`).val("");
-	    $(form).find(`input[name="strokeWidth"]`).val("");
-	    $(form).find(`input[name="strokeDashes"]`).val("");
-	    $(form).data("strokewidth", "");
-	    $(form).data("strokedashes", "");
-	    if( opts.setmode < 0 ){
-		$(form).find(`[name='selectfilter']`).val("");
-		$(form).data("selectfilter", "");
-	    }
-	} else {
-	    ao = this.layers.regions.canvas.getActiveObject();
-	    if( ao && ao.type === "group" && !ao.params ){
-		objs = ao.getObjects();
-		if( objs && objs.length && objs[0] && objs[0].params ){
-		    grp = objs[0].params.groupid;
-		}
-		if( grp ){
-		    $(form).find(`[name='selectfilter']`).val(grp);
-		    $(form).data('selectfilter', grp);
-		    s = this.listGroups(grp);
-		    s2 = s.substring(s.indexOf("\n")+1);
-		    $(form).find(`[name='multitext']`).val(s2);
-		} else {
-		    $(form).find(`[name='multitext']`).val("");
-		}
-	    } else if( ao ){
-		ao = this.layers.regions.canvas.getActiveObjects();
-		for(i=0, s=[], s2=""; i<ao.length; i++){
-		    o = ao[i];
-		    if( o.type === "group" && !o.params ){
-			s2 += `${this.lookupGroup(o)}\n`;
-		    } else {
-			s.push(o);
-		    }
-		}
-		s3 = this.listRegions(s, {mode: 1,
-					  includejson: false,
-					  includecomments: false})
-		    .replace(/ *; */g, "\n");
-		s2 = s2 + s3.substring(s3.indexOf("\n")+1);
-		if( s2 ){
-		    s4 = "selected";
-		    $(form).find(`[name='selectfilter']`).val(s4);
-		    $(form).data('selectfilter', s4);
-		    $(form).find(`[name='multitext']`).val(s2);
-		}
-	    } else {
-		s =  $(form).find(`[name='selectfilter']`).val() || "selected";
-		s2 = this.listRegions(s, {mode: 1,
-					 includejson: false,
-					 includecomments: false})
-		    .replace(/ *; */g, "\n");
-		if( s2 ){
-		    $(form).find(`[name='selectfilter']`).val(s);
-		    $(form).data('selectfilter', s);
-		    $(form).find(`[name='multitext']`).val(s2);
-		}
-	    }
-	}
-    } else {
-	// grey-out read-only text input
-	$(form).find("input:text[readonly]")
-	    .css("border-color", "#A5A5A5")
-	    .css("background", "#E9E9E9");
-	// regular text input
-	$(form).find("input:text:not([readonly])")
-	    .css("border-color", "#E9E9E9")
-	    .css("background", "white");
-	switch(obj.pub.shape){
-	case "box":
-	case "cross":
-	case "ellipse":
-	    $(`${form}.angle`).removeClass("nodisplay");
-	    break;
-	case "text":
-	    $(`${form}.textangle`).removeClass("nodisplay");
-	    break;
-	case "line":
-	    if( obj.pub.pts && obj.pub.pts.length === 2 ){
-		$(`${form}.linelength`).removeClass("nodisplay");
-		$(`${form}.lineangle`).removeClass("nodisplay");
-	    } else {
-		$(`${form}.linelength`).addClass("nodisplay");
-		$(`${form}.lineangle`).addClass("nodisplay");
-	    }
-	    break;
-	default:
-	    break;
-	}
-    }
-    // save options
-    $(`${form}.xtrareg`).addClass("nodisplay");
-    $(`${form}.xtracsv`).addClass("nodisplay");
-    $(`${form}.xtrasvg`).addClass("nodisplay");
-    $(`${form}.xtra${JS9.globalOpts.regSaveFormat}`).removeClass("nodisplay");
-    // save image for later processing
-    $(form).data("im", this);
-    // save shape object for later processing
-    $(form).data("shape", obj);
-    // save the window id for later processing
-    $(form).data("winid", winid);
-    // save multi state for later processing
-    $(form).data("multi", multi);
-    // even triggers
-    if( JS9.BROWSER[3] ){
-	mover = "touchstart";
-	mout = "touchend";
-    } else {
-	mover = "mouseover";
-	mout = "mouseout";
-    }
-    // for save form, focus on filename
-    if( opts.type === "save" ){
-	$(form).on(mover, () => {
-	    $(form).find(`input[name='savefile']`).focus();
-	});
-    }
-    // add tooltip callbacks (not mobile: ios buttons stop working!)
-    if( !$(form).data("tooltipInit") ){
-	$(form).data("tooltipInit", true);
-	$(".rconfigcol_R, .rsavecol_R").on(mover, (e) => {
-	    const target = e.currentTarget;
-	    const tooltip = $(target)
-		  .find("input, textarea, span")
-		  .data("tooltip");
-	    const el = $(target)
-		  .closest(JS9.lightOpts[JS9.LIGHTWIN].top)
-		  .find(JS9.lightOpts[JS9.LIGHTWIN].dragBar);
-	    if( tooltip && el.length ){
-		// change title: see dhtmlwindow.js load() @line 130
-		otitle = $(el)[0].childNodes[0].nodeValue.replace(/:.*/,"");
-		$(el)[0].childNodes[0].nodeValue = `${otitle}: ${tooltip}`;
-	    }
-	});
-	$(".rconfigcol_R, .rsavecol_R").on(mout, (e) => {
-	    const target = e.currentTarget;
-	    const el = $(target)
-		  .closest(JS9.lightOpts[JS9.LIGHTWIN].top)
-		  .find(JS9.lightOpts[JS9.LIGHTWIN].dragBar);
-	    if( el.length ){
-		otitle = $(el)[0].childNodes[0].nodeValue.replace(/:.*/,"");
-		$(el)[0].childNodes[0].nodeValue = otitle;
-	    }
-	});
-    }
 };
 
 // process the config form to change the specified shape
