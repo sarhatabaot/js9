@@ -2097,6 +2097,8 @@ JS9.mkPublic("AddDivs", function(...args){
 JS9.Layouts = {
     // the full editor: menus, tools, image, colorbar, and status readout
     full:    ["menubar", "toolbar", "display", "colorbar", "statusbar"],
+    // a viewer: menu + image + colorbar (no toolbar or status readout)
+    viewer:  ["menubar", "display", "colorbar"],
     // just the image display
     minimal: ["display"]
 };
@@ -2119,15 +2121,22 @@ JS9.createParts = {
 //   JS9.create("viewer", {toolbar: false, panner: true,
 //                         colormap: "viridis", image: "data/example.fits.gz"});
 // target: a container element or its id. All opts are optional:
-//   layout   - a JS9.Layouts preset name (default "full")
+//   layout   - a JS9.Layouts preset name (default "full"; also "viewer",
+//              "minimal", or your own)
 //   <part>   - booleans (menubar/toolbar/colorbar/statusbar/panner/magnifier)
 //              to add/remove a component on top of the preset
-//   id       - the display id (default: the container id, else generated)
+//   id       - the display id (default: derived from the container id, distinct
+//              from it)
 //   width/height - display size (default JS9.WIDTH/HEIGHT)
 //   image|src|url - a FITS file to preload
 //   colormap/scale/contrast/bias/zoom/flip/rot90/rotate - applied to the preload
 // Returns the display id. NB: the chrome (menubar/toolbar/...) requires the
 // plugins bundle (js9plugins.js or the all-in-one) to be loaded.
+//
+// Declarative form (no script): put <div class="JS9Editor" data-...></div> on
+// the page and JS9.init() builds it, reading data-* as opts -- e.g.
+//   <div class="JS9Editor" data-layout="viewer" data-colormap="viridis"
+//        data-image="data/example.fits.gz"></div>
 JS9.create = function(target, opts){
     let el, id, w, h, comps, html, loadopts, src, i, name;
     const parts = ["menubar", "toolbar", "colorbar",
@@ -2139,9 +2148,12 @@ JS9.create = function(target, opts){
 	JS9.error(`JS9.create: no element for target: ${target}`);
 	return undefined;
     }
-    // unique display id: opts.id, else the container's id, else generated
-    id = opts.id || el.id ||
-	 `JS9Display_${JS9.create._n = (JS9.create._n || 0) + 1}`;
+    // display id: opts.id, else derived from the container id, else generated.
+    // Kept DISTINCT from the container's own id -- the container holds the
+    // chrome plus a child .JS9 display div, so they cannot share an id.
+    id = opts.id ||
+	 (el.id ? `${el.id}JS9` :
+	  `JS9Display_${JS9.create._n = (JS9.create._n || 0) + 1}`);
     // display size (data-width/height drive it; default to the standard size)
     w = opts.width  || JS9.WIDTH;
     h = opts.height || JS9.HEIGHT;
@@ -2177,10 +2189,33 @@ JS9.create = function(target, opts){
 	 "rotate"].forEach((k) => {
 	    if( opts[k] !== undefined ){ loadopts[k] = opts[k]; }
 	});
-	JS9.Load(src, loadopts, {display: id});
+	// Preload (not Load) so it queues if the wasm module isn't ready yet --
+	// important for the declarative path, which runs during JS9.init().
+	JS9.Preload(src, loadopts, {display: id});
     }
     // return the display id for reference
     return id;
+};
+
+// read an element's data-* attributes into a JS9.create() opts object, coercing
+// "true"/"false" to booleans and numeric strings to numbers (data-layout ->
+// layout, data-menubar="false" -> menubar:false, data-width="800" -> width:800).
+JS9.dataToOpts = function(el){
+    const opts = {};
+    const ds = (el && el.dataset) || {};
+    let key, val;
+    for( key of Object.keys(ds) ){
+	val = ds[key];
+	if( val === "true" ){
+	    val = true;
+	} else if( val === "false" ){
+	    val = false;
+	} else if( val !== "" && !isNaN(val) ){
+	    val = parseFloat(val);
+	}
+	opts[key] = val;
+    }
+    return opts;
 };
 
 // instantiate plugins when $(document).ready fires before scripts are loaded,
@@ -3079,6 +3114,13 @@ JS9.init = function(){
 			 winDims: [0, 0]});
     // find divs associated with each plugin and run the constructor
     JS9.instantiatePlugins();
+    // declarative editors: build each <div class="JS9Editor"> via JS9.create,
+    // reading its data-* attributes as options (skip any already built)
+    $("div.JS9Editor").each((index, element) => {
+	if( element.children.length === 0 ){
+	    JS9.create(element, JS9.dataToOpts(element));
+	}
+    });
     // sort plugins
     JS9.plugins.sort((a,b) => {
 	const t1 = a.opts.menuItem;

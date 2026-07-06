@@ -52,6 +52,16 @@ test("minimal layout builds only the image display", async ({ page }) => {
   expect(r.statusbar).toBe(false);
 });
 
+test("viewer preset builds menubar + display + colorbar only", async ({ page }) => {
+  const r = await build(page, { layout: "viewer" });
+  expect(r.registered).toBe(true);
+  expect(r.menubar).toBe(true);
+  expect(r.display).toBe(true);
+  expect(r.colorbar).toBe(true);
+  expect(r.toolbar).toBe(false);
+  expect(r.statusbar).toBe(false);
+});
+
 test("per-component overrides add/remove parts on top of a preset", async ({ page }) => {
   // minimal + add menubar + add panner, but no toolbar
   const r = await build(page, { layout: "minimal", menubar: true, panner: true });
@@ -88,5 +98,44 @@ test("create can preload an image with display opts", async ({ page }) => {
       })
   );
   expect(r.loaded).toBe(true);
+  expect(r.colormap).toBe("heat");
+});
+
+test("declarative <div class='JS9Editor'> is auto-built by JS9.init()", async ({ page }) => {
+  // a page with a JS9Editor div and no script -> init() builds it
+  await page.goto("/tests/e2e/support/harness-editor.html", { waitUntil: "load" });
+  // wait for JS9 ready + the editor built + the image loaded
+  await page.waitForFunction(
+    () => {
+      try {
+        const J = window.JS9;
+        if (!(J && J.fits && J.fits.name)) return false;
+        if (!J.displays.some((d) => d.id === "declEditorJS9")) return false;
+        return !!J.GetImage({ display: "declEditorJS9" });
+      } catch {
+        return false;
+      }
+    },
+    { timeout: 60000 }
+  );
+  const r = await page.evaluate(() => {
+    const c = document.getElementById("declEditor");
+    const has = (cls) => !!c.querySelector("." + cls);
+    return {
+      menubar: has("JS9Menubar"),
+      display: has("JS9"),
+      colorbar: has("JS9Colorbar"),
+      toolbar: has("JS9Toolbar"),
+      statusbar: has("JS9Statusbar"),
+      colormap: window.JS9.GetColormap({ display: "declEditorJS9" }).colormap,
+    };
+  });
+  // data-layout="viewer" -> menubar + display + colorbar (no toolbar/statusbar)
+  expect(r.menubar).toBe(true);
+  expect(r.display).toBe(true);
+  expect(r.colorbar).toBe(true);
+  expect(r.toolbar).toBe(false);
+  expect(r.statusbar).toBe(false);
+  // data-colormap="heat" was applied to the preloaded image
   expect(r.colormap).toBe("heat");
 });

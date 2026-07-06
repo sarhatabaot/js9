@@ -47,9 +47,23 @@
 });</pre>
       <div id="viewer2"></div>
     </div>
+
+    <div class="col">
+      <h2>Declarative (no script)</h2>
+      <pre>&lt;div class="JS9Editor"
+     data-layout="viewer"
+     data-image="../data/example.fits.gz"
+     data-colormap="cool"&gt;&lt;/div&gt;</pre>
+      <!-- JS9.init() builds this on load, reading the data-* attributes -->
+      <div class="JS9Editor"
+           data-layout="viewer"
+           data-image="../data/example.fits.gz"
+           data-colormap="cool"></div>
+    </div>
   </div>
 
   <p style="margin-top: 20px;">
+    Layout presets: <code>full</code>, <code>viewer</code>, <code>minimal</code>.
     Compose parts on top of a preset, e.g.
     <code>JS9.create("viewer", {layout: "minimal", menubar: true, panner: true})</code>,
     or define your own named looks by adding to <code>JS9.Layouts</code>.
