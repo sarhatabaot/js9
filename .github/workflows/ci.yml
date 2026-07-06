@@ -1,8 +1,9 @@
 name: CI
 
-# Phase 1 safety net for the modernization effort: syntax-check the shipped JS
-# and run a headless smoke test that loads a FITS image in Chromium.
-# Baseline captured in BASELINE.md. Node 22 = current, Node 24 = forward target (LTS).
+# Build + type-check + syntax-check the shipped JS across the Node matrix. The
+# end-to-end Playwright suite (Chromium + Firefox) runs in its own workflow,
+# .github/workflows/playwright.yml.
+# Node 22 = current, Node 24 = forward target (LTS).
 
 on:
   push:
@@ -50,9 +51,3 @@ jobs:
                    _site/js9support.min.js _site/js9plugins.js; do
             node --check "$f" && echo "OK   $f"
           done
-
-      - name: Install Chromium for Playwright
-        run: npx playwright install --with-deps chromium
-
-      - name: End-to-end tests (source + minified + all-in-one bundles)
-        run: npm test
