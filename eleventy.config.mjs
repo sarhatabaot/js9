@@ -16,6 +16,7 @@ export default function (eleventyConfig) {
 
   // Served assets copied verbatim into the site root (matches the paths the
   // app and pages request at runtime).
+  eleventyConfig.addPassthroughCopy({ "docs/css": "css" });
   eleventyConfig.addPassthroughCopy({ "docs/assets/images": "images" });
   eleventyConfig.addPassthroughCopy({ "docs/assets/font": "font" });
   eleventyConfig.addPassthroughCopy({ "docs/assets/params": "params" });
