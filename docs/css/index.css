@@ -303,3 +303,27 @@
             gap: 14px;
         }
     }
+
+    @media print {
+
+        .nav,
+        .demo,
+        .cta,
+        #themeToggle {
+            display: none !important;
+        }
+
+        .hero {
+            min-height: auto;
+            padding: 2rem 0;
+        }
+
+        body {
+            background: white !important;
+            color: black !important;
+        }
+
+        .block {
+            background: white !important;
+        }
+    }
