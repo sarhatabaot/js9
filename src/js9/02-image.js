@@ -1,3 +1,36 @@
+const JS9_LOAD_NOTICE_TIMEOUT = 12000;
+
+const js9BitpixBytes = function(bitpix){
+    switch(bitpix){
+    case 8:
+	return 1;
+    case 16:
+    case -16:
+	return 2;
+    case 32:
+    case -32:
+	return 4;
+    case -64:
+	return 8;
+    default:
+	return 0;
+    }
+};
+
+const js9FormatBytes = function(bytes){
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let i = 0;
+    let val = bytes || 0;
+    while( val >= 1024 && i < units.length - 1 ){
+	val /= 1024;
+	i++;
+    }
+    if( i === 0 ){
+	return `${Math.round(val)} ${units[i]}`;
+    }
+    return `${val.toFixed(val >= 10 ? 0 : 1)} ${units[i]}`;
+};
+
 JS9.Image = function(file, params, func){
     let i, card, pars, nzoom, display, txeq, tval;
     let localOpts = null;
@@ -34,6 +67,7 @@ JS9.Image = function(file, params, func){
 	const imcmap = JS9.globalOpts.imcmap;
 	const oalerts = JS9.globalOpts.alerts;
 	const rregexp = /(annulus|box|circle|ellipse|line|polygon|point|text) *\(/;
+	const notice = this.getLoadDisplayNotice();
 	// add to list of images
 	JS9.images.push(this);
 	// clear previous messages
@@ -48,6 +82,16 @@ JS9.Image = function(file, params, func){
 	}
 	// display image, 2D graphics, etc.
 	this.displayImage("all", localOpts);
+	// tell the user when a large file was sectioned to fit memory/perf limits
+	if( notice ){
+	    this.display.displayMessage("info", notice.viewer);
+	    window.setTimeout(() => {
+		if( this.display && this.display.image === this ){
+		    this.display.clearMessage("info");
+		}
+	    }, JS9_LOAD_NOTICE_TIMEOUT);
+	    JS9.log(notice.console);
+	}
 	// notify the helper
 	this.notifyHelper();
 	// show regions layer
@@ -410,6 +454,45 @@ JS9.Image = function(file, params, func){
 	JS9.error(`unknown specification type for Load: ${typeof file}`);
 	break;
     }
+};
+
+JS9.Image.prototype.getLoadDisplayNotice = function(){
+    let source, viewer, con;
+    let bytesPerPixel, loadedBytes, fullBytes;
+    let full, loadedWidth, loadedHeight;
+    if( !this.raw || !this.raw.header ){
+	return null;
+    }
+    full = this.fileDimensions();
+    loadedWidth = this.raw.width || 0;
+    loadedHeight = this.raw.height || 0;
+    if( !full || !full.xdim || !full.ydim || !loadedWidth || !loadedHeight ){
+	return null;
+    }
+    if( loadedWidth >= full.xdim && loadedHeight >= full.ydim ){
+	return null;
+    }
+    bytesPerPixel = js9BitpixBytes(this.raw.bitpix);
+    loadedBytes = loadedWidth * loadedHeight * bytesPerPixel;
+    fullBytes = full.xdim * full.ydim * bytesPerPixel;
+    if( this.source === "fits2fits" ){
+	source = "representation file";
+    } else if( JS9.fits && JS9.fits.options &&
+	       JS9.fits.options.image &&
+	       (JS9.fits.options.image.xdim || JS9.fits.options.image.ydim) ){
+	source = "section limits";
+    } else {
+	source = "memory/performance limits";
+    }
+    viewer = sprintf("Section loaded: %dx%d of %dx%d (%s loaded, %s full). See console.",
+		     loadedWidth, loadedHeight, full.xdim, full.ydim,
+		     js9FormatBytes(loadedBytes), js9FormatBytes(fullBytes));
+    con = sprintf("JS9 load notice [%s]: loaded %dx%d of %dx%d via %s (BITPIX %d, approx raw memory %s loaded vs %s full). 'to fit' applies to the loaded section. Use DisplaySection('full') or load with {xdim:0, ydim:0} if memory allows.",
+		  this.id || this.file || "image",
+		  loadedWidth, loadedHeight, full.xdim, full.ydim,
+		  source, this.raw.bitpix,
+		  js9FormatBytes(loadedBytes), js9FormatBytes(fullBytes));
+    return {viewer, console: con};
 };
 
 // return the image data in a relatively standard format

@@ -14,7 +14,7 @@
 //
 // Usage: node scripts/build.mjs   (run before/with `npm run docs`; see build)
 
-import { readFile, writeFile, mkdir, copyFile, readdir, rm } from "node:fs/promises";
+import { readFile, writeFile, mkdir, copyFile, readdir, rm, access } from "node:fs/promises";
 import { Buffer } from "node:buffer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -86,8 +86,31 @@ const RUNTIME = [
 // --- helpers ---------------------------------------------------------------
 /** @param {string[]} files */
 async function concatFiles(files) {
-  const bufs = await Promise.all(files.map((f) => readFile(abs(f))));
+  const bufs = await Promise.all(files.map((f) => readResolvedFile(f)));
   return Buffer.concat(bufs);
+}
+
+/** @param {string} file */
+async function readResolvedFile(file) {
+  let current = file;
+  for (let i = 0; i < 8; i++) {
+    const buf = await readFile(abs(current));
+    const text = buf.toString("utf8").trim();
+    // Some vendored assets are one-line indirection files containing the real
+    // filename (e.g. "jquery-3.5.0.min.js"). Resolve those before bundling.
+    if (/^[^\r\n]+\.(js|css)$/.test(text)) {
+      const next = path.join(path.dirname(current), text);
+      try {
+        await access(abs(next));
+        current = next;
+        continue;
+      } catch {
+        // Fall through and treat the current file as the asset contents.
+      }
+    }
+    return buf;
+  }
+  throw new Error(`too many nested asset indirections while reading ${file}`);
 }
 
 /** @param {string} name @param {Buffer | Uint8Array | string} data */
