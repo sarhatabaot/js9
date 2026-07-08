@@ -1,0 +1,72 @@
+---
+templateEngineOverride: liquid
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link type="image/x-icon" rel="shortcut icon" href="../favicon.ico">
+  <title>Demos &middot; JS9</title>
+  <style>
+    :root { --ink:#1a202c; --muted:#5a6675; --border:#e2e8f0; --bg:#fff;
+            --bg-soft:#f7fafc; --accent:#2b6cb0; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --ink:#e6edf3; --muted:#8b98a5; --border:#30363d;
+        --bg:#0d1117; --bg-soft:#161b22; --accent:#58a6ff; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; color:var(--ink); background:var(--bg);
+      font:16px/1.6 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+    .head { padding: 40px 0 8px; }
+    .head h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -.02em; }
+    .head p { color: var(--muted); font-size: 17px; margin: 0; max-width: 60ch; }
+    .cat { margin: 34px 0 0; }
+    .cat h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--muted); margin: 0 0 12px; }
+    .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    .card { display: block; padding: 14px 16px; border: 1px solid var(--border);
+      border-radius: 10px; background: var(--bg-soft); text-decoration: none;
+      color: var(--ink); transition: border-color .15s, transform .15s; }
+    .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .card .t { display: block; font-weight: 600; margin-bottom: 3px; }
+    .card .b { display: block; color: var(--muted); font-size: 14px; }
+    footer { margin: 48px 0 40px; padding-top: 16px; border-top: 1px solid var(--border);
+      color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="head">
+      <h1>JS9 Demos</h1>
+      <p>
+        Live, self-contained examples of what JS9 can do &mdash; from a one-call
+        editor to server-side analysis. Each opens as a standalone page; see the
+        <a href="../help/start.html">documentation</a> for the how-to.
+      </p>
+    </div>
+
+    {% for cat in demos.categories %}
+    <section class="cat">
+      <h2>{{ cat.title }}</h2>
+      <div class="cards">
+        {% for d in cat.items %}
+        <a class="card" href="{{ d.slug }}.html">
+          <span class="t">{{ d.title }}</span>
+          <span class="b">{{ d.blurb }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+
+    <footer>
+      {{ demos.categories | size }} categories &middot; JS9 &middot;
+      <a href="../index.html">Home</a> &middot;
+      <a href="../help/start.html">Docs</a>
+    </footer>
+  </main>
+</body>
+</html>
