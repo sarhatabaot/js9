@@ -98,7 +98,7 @@
           JS9.imageOpts.valpos = false;
           for(i=0; i<images.length; i++){
               opts = {scale: scales[i], onload: ld};
-              JS9.Preload(imdir+images[i], opts);
+              JS9.Preload("data/example.fits.gz", Object.assign({}, opts, {id: images[i]}));
           }
       }
 

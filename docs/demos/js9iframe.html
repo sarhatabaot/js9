@@ -62,7 +62,7 @@
     <script type="text/javascript">
       var pm;
       var cbs = [];
-      var pmTarget = "https://js9.si.edu";
+      var pmTarget = window.location.origin;
       var pmEl = "js9iframe";
       function pminit(){
           if( window.hasOwnProperty("JS9PM") ){
@@ -173,9 +173,9 @@ Behold her, single in the field,<br>Yon solitary Highland Lass!<br>Reaping and s
   <table id="ttop" cellspacing="5">
     <tr>
     <td><b>Load an image:</b></td>
-    <td><input type="button" value="casa.fits.gz" onclick="javascript:pmsend('Load', ['data/fits//casa.fits.gz']);"></td>
-    <td><input type="button" value="snr.fits" onclick="javascript:pmsend('Load', ['data/fits/snr.fits']);"></td>
-    <td><input type="button" value="coma.fits (via proxy)" onclick="javascript:pmsend('LoadProxy', ['https://hea-www.cfa.harvard.edu/~eric/coma.fits.gz', {scale: 'linear'}]);"></td>
+    <td><input type="button" value="casa.fits.gz" onclick="javascript:pmsend('Load', ['data/example.fits.gz']);"></td>
+    <td><input type="button" value="snr.fits" onclick="javascript:pmsend('Load', ['data/example.fits.gz']);"></td>
+    <td><input type="button" value="coma.fits (via proxy)" onclick="javascript:pmsend('LoadProxy', ['data/example.fits.gz', {scale: 'linear'}]);"></td>
     </tr>
   </table>
 
@@ -233,7 +233,7 @@ Behold her, single in the field,<br>Yon solitary Highland Lass!<br>Reaping and s
 </div>
 
 <div class="overlay">
-<iframe class="iframe" id="js9iframe" src="https://js9.si.edu/js9/demos/js9_postmessage.html" height="640" width="100%"></iframe>
+<iframe class="iframe" id="js9iframe" src="js9_postmessage.html" height="640" width="100%"></iframe>
 </div>
 
 <div class="right">

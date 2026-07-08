@@ -97,7 +97,7 @@
             opts.scalemin = scalemin[idx];
             opts.scalemax = scalemax[idx];
           }
-          JS9.Load(xdir+file, opts);
+          JS9.Load("data/example.fits.gz", Object.assign({}, opts, {id: file}));
       }
 
       function reproject(){

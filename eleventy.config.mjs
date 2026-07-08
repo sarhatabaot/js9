@@ -8,6 +8,14 @@
 // Liquid layout (_includes/help.liquid) and the homepage (which opts in via
 // templateEngineOverride) are templated; page content is inserted verbatim.
 // Shared branding/links come from the global data file docs/_data/site.mjs.
+import demosData from "./docs/_data/demos.mjs";
+
+// Demos whose original sample data is not bundled (repointed to example.fits.gz).
+// Used to inject an on-page note; the gallery badges them too. See demos.mjs.
+const PLACEHOLDER_DEMOS = new Set(
+  demosData.categories.flatMap((c) => c.items).filter((d) => d.placeholder).map((d) => d.slug),
+);
+
 /** @param {any} eleventyConfig */
 export default function (eleventyConfig) {
   // Build inputs bundled by scripts/build.mjs — neither templated nor copied.
@@ -45,19 +53,25 @@ export default function (eleventyConfig) {
 .js9DemoBar nav a{text-decoration:none;color:#5a6675}
 .js9DemoBar nav a:hover{color:#2b6cb0}
 .js9DemoBar .tag{margin-left:auto;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#5a6675;border:1px solid #e2e8f0;border-radius:10px;padding:2px 8px}
-@media (prefers-color-scheme:dark){.js9DemoBar{background:#0d1117;border-bottom-color:#30363d}.js9DemoBar .brand{color:#e6edf3}.js9DemoBar nav a{color:#8b98a5}.js9DemoBar nav a:hover{color:#58a6ff}.js9DemoBar .tag{color:#8b98a5;border-color:#30363d}}
+.js9DemoNote{padding:8px 16px;background:#fffbe6;border-bottom:1px solid #f0e2a8;color:#6b5900;font:13px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.js9DemoNote code{background:rgba(0,0,0,.06);padding:1px 4px;border-radius:3px}
+@media (prefers-color-scheme:dark){.js9DemoBar{background:#0d1117;border-bottom-color:#30363d}.js9DemoBar .brand{color:#e6edf3}.js9DemoBar nav a{color:#8b98a5}.js9DemoBar nav a:hover{color:#58a6ff}.js9DemoBar .tag{color:#8b98a5;border-color:#30363d}.js9DemoNote{background:#2a2410;border-bottom-color:#4a3f14;color:#d9c65a}.js9DemoNote code{background:rgba(255,255,255,.1)}}
 </style>`;
   const DEMO_NAV_HTML = `<header class="js9DemoBar"><a class="brand" href="../index.html"><img src="../images/js9logo.png" alt="JS9">JS9</a><nav><a href="../index.html">Home</a><a href="../help/start.html">Docs</a><a href="../demos/">Demos</a></nav><span class="tag">demo</span></header>`;
+  // Injected below the header on demos whose original data isn't bundled.
+  const DEMO_NOTE_HTML = `<div class="js9DemoNote">This demo originally used specific FITS sample data that this site no longer ships, so it displays the bundled <code>example.fits.gz</code> instead. Restore the original <code>data/</code> files to see it as intended.</div>`;
 
   eleventyConfig.addTransform("demoHeader", function (content, outputPath) {
     const out = outputPath || (this.page && this.page.outputPath) || "";
     // only demo pages (demos/<name>.html, including the gallery index)
-    if (!/[\\/]demos[\\/][^\\/]+\.html$/.test(out)) return content;
+    const m = out.match(/[\\/]demos[\\/]([^\\/]+)\.html$/);
+    if (!m) return content;
     if (content.includes("js9DemoBar")) return content; // idempotent
     if (!/<body[^>]*>/i.test(content)) return content; // nothing to anchor to
+    const note = PLACEHOLDER_DEMOS.has(m[1]) ? DEMO_NOTE_HTML : "";
     return content
       .replace(/<\/head>/i, DEMO_NAV_STYLE + "</head>")
-      .replace(/(<body[^>]*>)/i, "$1" + DEMO_NAV_HTML);
+      .replace(/(<body[^>]*>)/i, "$1" + DEMO_NAV_HTML + note);
   });
 
   return {

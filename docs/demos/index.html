@@ -33,6 +33,9 @@ templateEngineOverride: liquid
     .card:hover { border-color: var(--accent); transform: translateY(-2px); }
     .card .t { display: block; font-weight: 600; margin-bottom: 3px; }
     .card .b { display: block; color: var(--muted); font-size: 14px; }
+    .card .badge { display: inline-block; margin-top: 8px; font-size: 11px;
+      color: var(--muted); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1px 8px; }
     footer { margin: 48px 0 40px; padding-top: 16px; border-top: 1px solid var(--border);
       color: var(--muted); font-size: 14px; }
   </style>
@@ -46,6 +49,13 @@ templateEngineOverride: liquid
         editor to server-side analysis. Each opens as a standalone page; see the
         <a href="../help/start.html">documentation</a> for the how-to.
       </p>
+      <p style="color:var(--muted); font-size:14px; margin:10px 0 0;">
+        Demos badged <span style="border:1px solid var(--border); border-radius:10px;
+        padding:1px 8px; font-size:11px;">sample data</span> originally used FITS
+        images that this site no longer ships; they display the bundled example
+        image instead. Restore the original <code>data/</code> files to see them
+        as intended.
+      </p>
     </div>
 
     {% for cat in demos.categories %}
@@ -56,6 +66,7 @@ templateEngineOverride: liquid
         <a class="card" href="{{ d.slug }}.html">
           <span class="t">{{ d.title }}</span>
           <span class="b">{{ d.blurb }}</span>
+          {% if d.placeholder %}<span class="badge" title="Original sample data is not bundled; shows the example image">sample data</span>{% endif %}
         </a>
         {% endfor %}
       </div>
