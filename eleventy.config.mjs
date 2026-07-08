@@ -22,6 +22,12 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "docs/assets/params": "params" });
   eleventyConfig.addPassthroughCopy({ "docs/demos/data": "demos/data" });
   eleventyConfig.addPassthroughCopy({ "docs/data": "data" });
+  // demo-local assets referenced by specific demos (menubar-styles demo, and
+  // the sample custom plugin used by the plugins demo)
+  eleventyConfig.addPassthroughCopy({ "docs/demos/js9usermenus.css": "demos/js9usermenus.css" });
+  eleventyConfig.addPassthroughCopy({ "docs/demos/js9usermenus.js": "demos/js9usermenus.js" });
+  eleventyConfig.addPassthroughCopy({ "plugins/plugintest.css": "plugins/plugintest.css" });
+  eleventyConfig.addPassthroughCopy({ "plugins/plugintest.js": "plugins/plugintest.js" });
   eleventyConfig.addPassthroughCopy({ "docs/favicon.ico": "favicon.ico" });
   // GitHub Pages custom domain (js9.sarhatabaot.net) -> served from _site/CNAME
   eleventyConfig.addPassthroughCopy({ "docs/CNAME": "CNAME" });
