@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link type="image/x-icon" rel="shortcut icon" href="../favicon.ico">
+
+  <!-- Capture any error thrown while the CDN bundle parses/loads, BEFORE the
+       bundle tag runs, so this page reports load failures instead of silently
+       breaking (e.g. "a.plot is undefined" when a second jQuery is present). -->
+  <script>
+    window.__js9load = { errors: [] };
+    window.addEventListener("error", function (e) {
+      window.__js9load.errors.push(String(e.message || e.error || e));
+    });
+  </script>
+
+  <!-- The exact all-in-one CDN setup documented in Getting Started.
+       Served from the JS9 GitHub Pages site (always the latest release). -->
+  <link rel="stylesheet" href="https://js9.sarhatabaot.net/js9-allinone.css">
+  <script src="https://js9.sarhatabaot.net/js9-allinone.js"></script>
+
+  <style>
+    #wrap { width: 512px; margin: 0 auto; font-family: sans-serif; }
+    h1 { font-size: 1.2em; text-align: center; }
+    #diag { border: 1px solid #ccc; border-radius: 6px; padding: .6em .8em;
+            margin: 1em 0; font: 13px/1.5 monospace; background: #f7f7f7; }
+    #diag .ok  { color: #187a18; }
+    #diag .bad { color: #b00020; font-weight: bold; }
+    #diag dt { font-weight: bold; }
+    #viewer { width: 512px; }
+  </style>
+  <title>JS9 allinone (CDN) demo + diagnostic</title>
+</head>
+<body>
+  <div id="wrap">
+    <h1>JS9 all-in-one, loaded from the CDN</h1>
+
+    <p>
+      This page loads <code>js9-allinone.css</code> and
+      <code>js9-allinone.js</code> straight from
+      <code>https://js9.sarhatabaot.net/</code> &mdash; the exact snippet from the
+      <a href="../help/start.html">Getting Started</a> guide, with nothing else
+      on the page. If the viewer below works, the CDN bundle is healthy; the
+      panel reports the runtime state so a failing environment is easy to spot.
+    </p>
+
+    <div id="diag">checking&hellip;</div>
+
+    <!-- One empty container; JS9.create() builds the full editor inside it. -->
+    <div id="viewer"></div>
+
+    <script>
+      // Report the runtime state that the "a.plot is undefined" failure hinges
+      // on: is jQuery present, did flot attach $.plot, did JS9 initialize, and
+      // did anything throw while the bundle loaded. A second jQuery on the page
+      // (from a theme/CMS/loader) wipes $.plot and is the usual culprit.
+      (function () {
+        function row(label, ok, detail) {
+          return "<dt>" + label + "</dt><dd class='" + (ok ? "ok" : "bad") + "'>" +
+                 (ok ? "OK" : "FAIL") + (detail ? " — " + detail : "") + "</dd>";
+        }
+        function render() {
+          var $ = window.jQuery;
+          var errs = window.__js9load.errors;
+          var html = "<dl>";
+          html += row("jQuery", typeof $ === "function",
+                      $ ? ("v" + $.fn.jquery) : "not found");
+          html += row("$.plot (flot)", !!($ && $.plot),
+                      $ && $.plot ? "flot core loaded" : "undefined — a second jQuery likely replaced the bundle's");
+          html += row("JS9", typeof window.JS9 === "object",
+                      window.JS9 ? "ready" : "not defined");
+          html += row("Load errors", errs.length === 0,
+                      errs.length ? errs.join(" | ") : "none");
+          html += "</dl>";
+          document.getElementById("diag").innerHTML = html;
+        }
+
+        function start() {
+          try {
+            JS9.create("viewer", {
+              image: "../data/example.fits.gz",
+              opts: { scale: "log", colormap: "viridis" }
+            });
+          } catch (e) {
+            window.__js9load.errors.push("JS9.create: " + e.message);
+          }
+          render();
+        }
+
+        if (window.JS9 && window.jQuery) {
+          window.jQuery(function () { setTimeout(start, 0); });
+        } else {
+          // Bundle failed to define JS9/jQuery: still render the diagnostic.
+          window.addEventListener("load", render);
+        }
+      })();
+    </script>
+  </div>
+</body>
+</html>
