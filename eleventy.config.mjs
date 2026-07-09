@@ -61,7 +61,9 @@ export default function (eleventyConfig) {
   // Injected below the header on demos whose original data isn't bundled.
   const DEMO_NOTE_HTML = `<div class="js9DemoNote">This demo originally used specific FITS sample data that this site no longer ships, so it displays the bundled <code>example.fits.gz</code> instead. Restore the original <code>data/</code> files to see it as intended.</div>`;
 
-  eleventyConfig.addTransform("demoHeader", function (content, outputPath) {
+  eleventyConfig.addTransform("demoHeader",
+    /** @this {any} @param {string} content @param {string} [outputPath] */
+    function (content, outputPath) {
     const out = outputPath || (this.page && this.page.outputPath) || "";
     // only demo pages (demos/<name>.html, including the gallery index)
     const m = out.match(/[\\/]demos[\\/]([^\\/]+)\.html$/);
