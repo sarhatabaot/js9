@@ -55,12 +55,12 @@ test("code blocks have a copy button", async ({ page }) => {
   await expect(page.locator(".docsContent .codeWrap .copyBtn").first()).toBeAttached();
 });
 
-test("CDN install shows a GitHub tab and a disabled npm tab", async ({ page }) => {
+test("CDN install shows a JS9 site tab and a disabled npm tab", async ({ page }) => {
   await page.goto("/_site/help/start.html", { waitUntil: "load" });
-  // GitHub tab is active and its panel shows a jsDelivr/gh URL
-  await expect(page.locator("#cdnTabGh")).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator("#cdnPanelGh")).toBeVisible();
-  await expect(page.locator("#cdnPanelGh")).toContainText("cdn.jsdelivr.net/gh/sarhatabaot/js9");
+  // JS9 site tab is active and its panel shows the js9.sarhatabaot.net URL
+  await expect(page.locator("#cdnTabSite")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#cdnPanelSite")).toBeVisible();
+  await expect(page.locator("#cdnPanelSite")).toContainText("https://js9.sarhatabaot.net/js9-allinone.js");
   // npm tab is disabled (until published); its panel stays hidden
   await expect(page.locator("#cdnTabNpm")).toBeDisabled();
   await expect(page.locator("#cdnPanelNpm")).toBeHidden();

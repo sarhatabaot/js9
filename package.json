@@ -1,6 +1,6 @@
 {
   "name": "js9-modern",
-  "version": "3.10.0-experimental.0",
+  "version": "3.10.0",
   "description": "Modern fork of JS9 — astronomical FITS image display in the browser (WebAssembly engine, node build, static-first). Fork of ericmandel/js9.",
   "main": "_site/js9.min.js",
   "jsdelivr": "_site/js9.min.js",
