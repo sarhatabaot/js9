@@ -62,35 +62,31 @@ hand-placed-div approach.
 
 <div class="tabs" data-tabs>
   <div class="tabList" role="tablist" aria-label="CDN source">
-    <button class="tabBtn" type="button" role="tab" id="cdnTabGh"
-            aria-controls="cdnPanelGh" aria-selected="true">GitHub (jsDelivr)</button>
+    <button class="tabBtn" type="button" role="tab" id="cdnTabSite"
+            aria-controls="cdnPanelSite" aria-selected="true">JS9 site</button>
     <button class="tabBtn" type="button" role="tab" id="cdnTabNpm"
             aria-controls="cdnPanelNpm" aria-selected="false" disabled
-            title="Available once JS9 is published to npm">npm <span class="soon">soon</span></button>
+            title="Available once JS9 is published to npm">npm (jsDelivr) <span class="soon">soon</span></button>
   </div>
 
-  <section class="tabPanel" role="tabpanel" id="cdnPanelGh" aria-labelledby="cdnTabGh">
-<pre>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sarhatabaot/js9@v3.10.0/js9-allinone.css"&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/sarhatabaot/js9@v3.10.0/js9-allinone.js"&gt;&lt;/script&gt;</pre>
-    <p>jsDelivr can load any GitHub release, commit, or branch &mdash; set the ref
-    after the <code>@</code>:</p>
-    <ul>
-      <li><code>@v3.10.0</code> &mdash; a tagged release (recommended for production)</li>
-      <li><code>@master</code> &mdash; the tip of a branch</li>
-      <li><code>@1a2b3c4</code> &mdash; an exact commit</li>
-    </ul>
+  <section class="tabPanel" role="tabpanel" id="cdnPanelSite" aria-labelledby="cdnTabSite">
+<pre>&lt;link rel="stylesheet" href="https://js9.sarhatabaot.net/js9-allinone.css"&gt;
+&lt;script src="https://js9.sarhatabaot.net/js9-allinone.js"&gt;&lt;/script&gt;</pre>
     <p>
-      Note: jsDelivr serves files committed to the repository at that ref, so a
-      GitHub URL resolves once a release (or commit) includes the built
-      <code>js9-allinone.*</code> bundle. For projects that support it, we
-      recommend the npm source instead.
+      These URLs always serve the latest build of the <code>master</code> branch
+      and are not versioned, so the files can change under you. That is fine for
+      trying JS9 out. For production, pin a version: download
+      <code>js9-allinone.*</code> from a
+      <a href="https://github.com/sarhatabaot/js9/releases/tag/3.10.0" target="_blank" rel="noopener">GitHub release</a>
+      (e.g. 3.10.0) and self-host it, or use the npm source from 3.10.1 on.
     </p>
   </section>
 
   <section class="tabPanel" role="tabpanel" id="cdnPanelNpm" aria-labelledby="cdnTabNpm" hidden>
-<pre>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/js9-modern@3.10.0/js9-allinone.css"&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/js9-modern@3.10.0/js9-allinone.js"&gt;&lt;/script&gt;</pre>
-    <p>Available once JS9 is published to npm.</p>
+<pre>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/js9-modern@3.10.1/_site/js9-allinone.css"&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/js9-modern@3.10.1/_site/js9-allinone.js"&gt;&lt;/script&gt;</pre>
+    <p>Available from 3.10.1, once JS9 is published to npm. This will be the
+    recommended, versioned CDN for production.</p>
   </section>
 </div>
 

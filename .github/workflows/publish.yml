@@ -50,7 +50,7 @@ jobs:
         # "latest", so `npm install js9-modern` won't pull it — users opt in with
         # `npm install js9-modern@experimental`. Combined with the prerelease
         # version (3.10.0-experimental.N), it's never installed by default.
-        # To graduate: set a stable version (3.10.0) and drop --tag (-> latest).
+        # To graduate: set a stable version (e.g. 3.10.1) and drop --tag (-> latest).
         run: npm publish --tag experimental --provenance --access public
         # For token auth instead of trusted publishing:
         # env:

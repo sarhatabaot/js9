@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing release tag to build and attach assets to (e.g. v3.10.0)"
+        description: "Existing release tag to build and attach assets to (e.g. 3.10.0)"
         required: true
 
 # Uploading release assets needs write access to repository contents.
